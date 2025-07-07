@@ -19,23 +19,45 @@ class ProductProvider extends ChangeNotifier{
   //unmodifiable view - UI can't change the list directly.
   UnmodifiableListView<Product> get products => UnmodifiableListView(_products);
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   ProductProvider(){
+    log('[ProductProvider] Constructor called. Starting initialization.', name: 'ProductProvider');
     _initialize();
   }
 
   Future<void> _initialize() async{
+    try{
     //initialize location service as soon as app starts
+    log('[ProductProvider] Initializing LocationService...', name: 'ProductProvider');
     await _locationService.initialize();
+    log('[ProductProvider] LocationService initialized successfully.', name: 'ProductProvider');
+
     //load the initial list of products from db.
+    log('[ProductProvider] Fetching initial products...', name: 'ProductProvider');
     await fetchProducts();
+    log('[ProductProvider] Initial products fetched successfully.', name: 'ProductProvider');
+
+    _isInitialized = true;
+    log('[ProductProvider] Initialization COMPLETE.', name: 'ProductProvider');
+    }catch(e, stackTrace){
+      log(
+          '[ProductProvider] CRITICAL ERROR DURING INITIALIZATION',
+        name: 'ProductProvider',
+        error: e,
+        stackTrace: stackTrace
+      );
+    }
   }
 
   Future<void> fetchProducts() async{
     _products = await _databaseService.getProducts();
     log('Fetched ${_products.length} products from the database.', name: 'ProductProvider');
     notifyListeners(); //notify the ui the list has changed
-    _updateGeofences(); //update geofences when productlist is loaded
+    await _updateGeofences(); //update geofences when productlist is loaded
   }
+
 
   Future<void> _updateGeofences()async{
     if(products.isEmpty){
@@ -50,6 +72,7 @@ class ProductProvider extends ChangeNotifier{
       await _locationService.addGeofences(locations);
     }
   }
+
 
   Future<void> addProduct(String name) async {
       if (name.isEmpty) return;

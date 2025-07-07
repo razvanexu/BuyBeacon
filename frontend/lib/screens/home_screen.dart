@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/product_provider.dart';
 import 'package:provider/provider.dart';
@@ -51,12 +53,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   labelText: 'Add product',
                   border: OutlineInputBorder()
               ),
+              onSubmitted: (value) {
+                _addProduct();
+              },
             ),
           ),
           const SizedBox(width: 16.0,),
           ElevatedButton(
               onPressed: () {
                 //TODO: logic for adding product
+                _addProduct();
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -89,8 +95,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.red),
                           onPressed: () {
+                            try{
+                              Provider.of<ProductProvider>(context, listen: false)
+                                  .deleteProduct(product.id!);
+                            }catch(e, s){
+                              log('Error deleting product', name: 'HomeScreen', error: e, stackTrace: s);
+                            }
                             // Call the provider's delete method
-                            provider.deleteProduct(product.id!);
                           },
                         )
                     );
@@ -101,10 +112,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void addProduct(ProductProvider provider){
-    if(_textController.text.isNotEmpty){
-      provider.addProduct(_textController.text);
-      _textController.clear();
-    }
+  void _addProduct() {
+    log('[1] _addProduct called.', name: 'HomeScreen');
+    if (_textController.text.isEmpty) {
+        log('[!] Text field is empty. Aborting.', name: 'HomeScreen');
+        return;
+      }
+    try {
+        log('[2] Getting ProductProvider.', name: 'HomeScreen');
+        // We get the provider here, inside the try-catch block.
+        final provider = Provider.of<ProductProvider>(context, listen: false);
+        log('[3] ProductProvider found. Calling provider.addProduct().', name: 'HomeScreen');
+          // We call the provider's method, which is an async Future.
+        // We don't need to `await` it here, but we catch potential errors.
+        provider.addProduct(_textController.text).catchError((e, s) {
+             log('[!] Error during provider.addProduct() future.', name: 'HomeScreen', error: e, stackTrace: s);
+          });
+          log('[4] Clearing text controller.', name: 'HomeScreen');
+        _textController.clear();
+        } catch (e, s) {
+        // This will catch an error if Provider.of fails or if any other synchronous error occurs.
+        log('[!] CRITICAL ERROR in _addProduct.', name: 'HomeScreen', error: e, stackTrace: s);
+      }
   }
 }
