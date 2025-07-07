@@ -1,0 +1,65 @@
+import 'dart:developer';
+
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
+import 'package:frontend/models/shop_location.dart';
+
+class LocationService{
+  //Singleton Instance
+  static final LocationService _instance = LocationService._internal();
+  factory LocationService() => _instance;
+  LocationService._internal();
+
+  //geolocation plugin init
+  Future<void> initialize() async{
+    //listen to geofence events
+    bg.BackgroundGeolocation.ready(bg.Config(
+      desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
+      distanceFilter: 10.0, //distance in meters (horizaontally) from the location
+      stopOnTerminate: false, //Continue tracking after the app is terminated
+      startOnBoot: true, //Restart backround tracking after devise reboot
+      logLevel: bg.Config.LOG_LEVEL_VERBOSE,
+      geofenceProximityRadius: 1000, //default radius in meters for geofencing
+      debug: true, //enable debug sounds / notifications
+    )).then((bg.State state){
+      if(!state.enabled){
+        //start tracking service
+        bg.BackgroundGeolocation.startGeofences();
+        log('Background geolocation started.', name: 'LocationService');
+      }
+    });
+  }
+
+  //Geofence event handler
+  void onGeofence(bg.GeofenceEvent event){
+    log('Geofence event triggered: $event', name: 'LocationService');
+    //trigger notification event for user
+    // (ex. "you are near {store name} that might have product x")
+    //TODO: add notification logic
+    if(event.action == 'ENTER'){
+      log('User entered geofence: ${event.identifier}', name: 'LocationService');
+      //TODO: show local notification
+    }
+  }
+
+  //Public methods
+  Future<void> addGeofences(List<ShopLocation> locations) async{
+    log('Adding ${locations.length} geofences.', name: 'LocationService');
+    await bg.BackgroundGeolocation.removeGeofences(); //clear old fences first
+    for(var location in locations){
+      try{
+        await bg.BackgroundGeolocation.addGeofence(bg.Geofence(
+          identifier: 'shop_${location.latitude}_${location.longitude}', //unique id
+          radius: 500, //radius in meters
+          latitude: location.latitude,
+          longitude: location.longitude,
+          notifyOnEntry: true,
+          notifyOnExit: false,
+          notifyOnDwell: false
+        ));
+        log('Successfully added geofence for ${location.latitude}, ${location.longitude}', name: 'LocationService');
+      }catch(e){
+        log('Error adding geofence: $e', name: 'LocationService', error: e);
+      }
+    }
+  }
+}
