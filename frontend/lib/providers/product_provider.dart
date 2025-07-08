@@ -9,9 +9,9 @@ import 'package:frontend/services/location_service.dart';
 
 class ProductProvider extends ChangeNotifier{
   //instantiate our services
-  final DatabaseService _databaseService = DatabaseService();
-  final APiService _aPiService = APiService();
-  final LocationService _locationService = LocationService();
+  final DatabaseService _databaseService;
+  final ApiService _apiService;
+  final LocationService _locationService;
 
   List<Product> _products = [];
 
@@ -22,8 +22,14 @@ class ProductProvider extends ChangeNotifier{
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
-  ProductProvider(){
-    log('[ProductProvider] Constructor called. Starting initialization.', name: 'ProductProvider');
+
+  ProductProvider({
+    DatabaseService? dbService,
+    ApiService? api,
+    LocationService? location
+}) : _databaseService = dbService ?? DatabaseService(),
+     _apiService = api ?? ApiService(),
+     _locationService = location ?? LocationService(){
     _initialize();
   }
 
@@ -67,7 +73,7 @@ class ProductProvider extends ChangeNotifier{
     }
 
     log('Updating geofences for ${_products.length} products.', name: 'ProductProvider');
-    final locations = await _aPiService.findShops(products);
+    final locations = await _apiService.findShops(products);
     if(locations.isNotEmpty){
       await _locationService.addGeofences(locations);
     }
@@ -76,16 +82,24 @@ class ProductProvider extends ChangeNotifier{
 
   Future<void> addProduct(String name) async {
       if (name.isEmpty) return;
-      final newProduct = Product(name: name);
-      await _databaseService.addProduct(newProduct);
-      log('Added product: $name', name: 'ProductProvider');
-      await fetchProducts(); // Re-fetch the list from the DB to get the new ID.
+      try{
+        final newProduct = Product(name: name);
+        await _databaseService.addProduct(newProduct);
+        log('Added product: $name', name: 'ProductProvider');
+        await fetchProducts(); // Re-fetch the list from the DB to get the new ID.
+      }catch(e, s){
+        log('Error in addProduct. The product was saved locally, but failed to update geofences.', name: 'ProductProvider', error: e, stackTrace: s);
+      }
     }
 
   Future<void> deleteProduct(int id) async {
+    try{
       await _databaseService.deleteProduct(id);
       log('Deleted product with id: $id', name: 'ProductProvider');
       await fetchProducts(); // Re-fetch the list to reflect the deletion.
+    }catch(e, s){
+      log('Error in deleteProduct. The product was deleted locally, but failed to update geofences.', name: 'ProductProvider', error: e, stackTrace: s);
     }
+  }
 
 }

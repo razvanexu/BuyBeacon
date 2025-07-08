@@ -6,11 +6,11 @@ import 'package:http/http.dart' as http;
 
 import '../models/shop_location.dart';
 
-class APiService{
+class ApiService{
   //singleton instance
-  static final APiService _instance = APiService._internal();
-  factory APiService() => _instance;
-  APiService._internal();
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
+  ApiService._internal();
 
   // --- IMPORTANT ---
   // The base URL for your Spring Boot backend.
