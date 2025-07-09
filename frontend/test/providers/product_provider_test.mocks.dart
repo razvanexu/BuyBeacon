@@ -3,19 +3,21 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
-import 'dart:collection' as _i3;
-import 'dart:ui' as _i12;
+import 'dart:async' as _i7;
+import 'dart:collection' as _i4;
+import 'dart:ui' as _i13;
 
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as _i10;
-import 'package:frontend/models/product.dart' as _i6;
-import 'package:frontend/models/shop_location.dart' as _i8;
-import 'package:frontend/providers/product_provider.dart' as _i11;
-import 'package:frontend/services/api_service.dart' as _i7;
-import 'package:frontend/services/database_service.dart' as _i4;
-import 'package:frontend/services/location_service.dart' as _i9;
+    as _i5;
+import 'package:frontend/models/product.dart' as _i8;
+import 'package:frontend/models/shop_location.dart' as _i10;
+import 'package:frontend/providers/product_provider.dart' as _i12;
+import 'package:frontend/services/api_service.dart' as _i9;
+import 'package:frontend/services/database_service.dart' as _i6;
+import 'package:frontend/services/location_service.dart' as _i11;
+import 'package:frontend/services/notification_service.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i14;
 import 'package:sqflite/sqflite.dart' as _i2;
 
 // ignore_for_file: type=lint
@@ -37,125 +39,147 @@ class _FakeDatabase_0 extends _i1.SmartFake implements _i2.Database {
     : super(parent, parentInvocation);
 }
 
-class _FakeUnmodifiableListView_1<E> extends _i1.SmartFake
-    implements _i3.UnmodifiableListView<E> {
-  _FakeUnmodifiableListView_1(Object parent, Invocation parentInvocation)
+class _FakeNotificationService_1 extends _i1.SmartFake
+    implements _i3.NotificationService {
+  _FakeNotificationService_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeUnmodifiableListView_2<E> extends _i1.SmartFake
+    implements _i4.UnmodifiableListView<E> {
+  _FakeUnmodifiableListView_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeLocation_3 extends _i1.SmartFake implements _i5.Location {
+  _FakeLocation_3(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
 /// A class which mocks [DatabaseService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDatabaseService extends _i1.Mock implements _i4.DatabaseService {
+class MockDatabaseService extends _i1.Mock implements _i6.DatabaseService {
   MockDatabaseService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<_i2.Database> get database =>
+  _i7.Future<_i2.Database> get database =>
       (super.noSuchMethod(
             Invocation.getter(#database),
-            returnValue: _i5.Future<_i2.Database>.value(
+            returnValue: _i7.Future<_i2.Database>.value(
               _FakeDatabase_0(this, Invocation.getter(#database)),
             ),
           )
-          as _i5.Future<_i2.Database>);
+          as _i7.Future<_i2.Database>);
 
   @override
-  _i5.Future<int> addProduct(_i6.Product? product) =>
+  _i7.Future<int> addProduct(_i8.Product? product) =>
       (super.noSuchMethod(
             Invocation.method(#addProduct, [product]),
-            returnValue: _i5.Future<int>.value(0),
+            returnValue: _i7.Future<int>.value(0),
           )
-          as _i5.Future<int>);
+          as _i7.Future<int>);
 
   @override
-  _i5.Future<List<_i6.Product>> getProducts() =>
+  _i7.Future<List<_i8.Product>> getProducts() =>
       (super.noSuchMethod(
             Invocation.method(#getProducts, []),
-            returnValue: _i5.Future<List<_i6.Product>>.value(<_i6.Product>[]),
+            returnValue: _i7.Future<List<_i8.Product>>.value(<_i8.Product>[]),
           )
-          as _i5.Future<List<_i6.Product>>);
+          as _i7.Future<List<_i8.Product>>);
 
   @override
-  _i5.Future<int> deleteProduct(int? id) =>
+  _i7.Future<int> deleteProduct(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteProduct, [id]),
-            returnValue: _i5.Future<int>.value(0),
+            returnValue: _i7.Future<int>.value(0),
           )
-          as _i5.Future<int>);
+          as _i7.Future<int>);
 }
 
 /// A class which mocks [ApiService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockApiService extends _i1.Mock implements _i7.ApiService {
+class MockApiService extends _i1.Mock implements _i9.ApiService {
   MockApiService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<List<_i8.ShopLocation>> findShops(List<_i6.Product>? products) =>
+  _i7.Future<List<_i10.ShopLocation>> findShops(List<_i8.Product>? products) =>
       (super.noSuchMethod(
             Invocation.method(#findShops, [products]),
-            returnValue: _i5.Future<List<_i8.ShopLocation>>.value(
-              <_i8.ShopLocation>[],
+            returnValue: _i7.Future<List<_i10.ShopLocation>>.value(
+              <_i10.ShopLocation>[],
             ),
           )
-          as _i5.Future<List<_i8.ShopLocation>>);
+          as _i7.Future<List<_i10.ShopLocation>>);
 }
 
 /// A class which mocks [LocationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocationService extends _i1.Mock implements _i9.LocationService {
+class MockLocationService extends _i1.Mock implements _i11.LocationService {
   MockLocationService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<void> initialize() =>
+  _i3.NotificationService get notificationService =>
       (super.noSuchMethod(
-            Invocation.method(#initialize, []),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            Invocation.getter(#notificationService),
+            returnValue: _FakeNotificationService_1(
+              this,
+              Invocation.getter(#notificationService),
+            ),
           )
-          as _i5.Future<void>);
+          as _i3.NotificationService);
 
   @override
-  void onGeofence(_i10.GeofenceEvent? event) => super.noSuchMethod(
+  _i7.Future<void> initialize() =>
+      (super.noSuchMethod(
+            Invocation.method(#initialize, []),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  void onGeofence(_i5.GeofenceEvent? event) => super.noSuchMethod(
     Invocation.method(#onGeofence, [event]),
     returnValueForMissingStub: null,
   );
 
   @override
-  _i5.Future<void> addGeofences(List<_i8.ShopLocation>? locations) =>
+  _i7.Future<void> addGeofences(List<_i10.ShopLocation>? locations) =>
       (super.noSuchMethod(
             Invocation.method(#addGeofences, [locations]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i7.Future<void>);
 }
 
 /// A class which mocks [ProductProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProductProvider extends _i1.Mock implements _i11.ProductProvider {
+class MockProductProvider extends _i1.Mock implements _i12.ProductProvider {
   MockProductProvider() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.UnmodifiableListView<_i6.Product> get products =>
+  _i4.UnmodifiableListView<_i8.Product> get products =>
       (super.noSuchMethod(
             Invocation.getter(#products),
-            returnValue: _FakeUnmodifiableListView_1<_i6.Product>(
+            returnValue: _FakeUnmodifiableListView_2<_i8.Product>(
               this,
               Invocation.getter(#products),
             ),
           )
-          as _i3.UnmodifiableListView<_i6.Product>);
+          as _i4.UnmodifiableListView<_i8.Product>);
 
   @override
   bool get isInitialized =>
@@ -168,40 +192,40 @@ class MockProductProvider extends _i1.Mock implements _i11.ProductProvider {
           as bool);
 
   @override
-  _i5.Future<void> fetchProducts() =>
+  _i7.Future<void> fetchProducts() =>
       (super.noSuchMethod(
             Invocation.method(#fetchProducts, []),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i5.Future<void> addProduct(String? name) =>
+  _i7.Future<void> addProduct(String? name) =>
       (super.noSuchMethod(
             Invocation.method(#addProduct, [name]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  _i5.Future<void> deleteProduct(int? id) =>
+  _i7.Future<void> deleteProduct(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteProduct, [id]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
           )
-          as _i5.Future<void>);
+          as _i7.Future<void>);
 
   @override
-  void addListener(_i12.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i13.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i12.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i13.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -215,6 +239,122 @@ class MockProductProvider extends _i1.Mock implements _i11.ProductProvider {
   @override
   void notifyListeners() => super.noSuchMethod(
     Invocation.method(#notifyListeners, []),
+    returnValueForMissingStub: null,
+  );
+}
+
+/// A class which mocks [NotificationService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockNotificationService extends _i1.Mock
+    implements _i3.NotificationService {
+  MockNotificationService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i7.Future<void> initialize() =>
+      (super.noSuchMethod(
+            Invocation.method(#initialize, []),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> showNotification({
+    required String? title,
+    required String? body,
+    String? payload,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#showNotification, [], {
+              #title: title,
+              #body: body,
+              #payload: payload,
+            }),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+}
+
+/// A class which mocks [GeofenceEvent].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGeofenceEvent extends _i1.Mock implements _i5.GeofenceEvent {
+  MockGeofenceEvent() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  String get identifier =>
+      (super.noSuchMethod(
+            Invocation.getter(#identifier),
+            returnValue: _i14.dummyValue<String>(
+              this,
+              Invocation.getter(#identifier),
+            ),
+          )
+          as String);
+
+  @override
+  String get action =>
+      (super.noSuchMethod(
+            Invocation.getter(#action),
+            returnValue: _i14.dummyValue<String>(
+              this,
+              Invocation.getter(#action),
+            ),
+          )
+          as String);
+
+  @override
+  _i5.Location get location =>
+      (super.noSuchMethod(
+            Invocation.getter(#location),
+            returnValue: _FakeLocation_3(this, Invocation.getter(#location)),
+          )
+          as _i5.Location);
+
+  @override
+  String get timestamp =>
+      (super.noSuchMethod(
+            Invocation.getter(#timestamp),
+            returnValue: _i14.dummyValue<String>(
+              this,
+              Invocation.getter(#timestamp),
+            ),
+          )
+          as String);
+
+  @override
+  set identifier(String? _identifier) => super.noSuchMethod(
+    Invocation.setter(#identifier, _identifier),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set action(String? _action) => super.noSuchMethod(
+    Invocation.setter(#action, _action),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set location(_i5.Location? _location) => super.noSuchMethod(
+    Invocation.setter(#location, _location),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set timestamp(String? _timestamp) => super.noSuchMethod(
+    Invocation.setter(#timestamp, _timestamp),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set extras(Map<dynamic, dynamic>? _extras) => super.noSuchMethod(
+    Invocation.setter(#extras, _extras),
     returnValueForMissingStub: null,
   );
 }

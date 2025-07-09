@@ -5,11 +5,20 @@ import 'package:frontend/providers/product_provider.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:frontend/services/database_service.dart';
 import 'package:frontend/services/location_service.dart';
+import 'package:frontend/services/notification_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'product_provider_test.mocks.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 
-@GenerateMocks([DatabaseService, ApiService, LocationService, ProductProvider])
+@GenerateMocks([
+  DatabaseService,
+  ApiService,
+  LocationService,
+  ProductProvider,
+  NotificationService,
+  bg.GeofenceEvent
+])
 void main(){
   late ProductProvider productProvider;
   late MockDatabaseService mockDatabaseService;
