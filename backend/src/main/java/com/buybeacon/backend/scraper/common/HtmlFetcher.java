@@ -1,4 +1,4 @@
-package com.buybeacon.backend.scraper;
+package com.buybeacon.backend.scraper.common;
 
 import java.io.IOException;
 

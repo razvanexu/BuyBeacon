@@ -1,4 +1,4 @@
-package com.buybeacon.backend.scraper;
+package com.buybeacon.backend.scraper.common;
 
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
