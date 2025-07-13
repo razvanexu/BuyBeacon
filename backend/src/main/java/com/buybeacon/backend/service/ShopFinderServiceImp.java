@@ -1,7 +1,6 @@
 package com.buybeacon.backend.service;
 
 import com.buybeacon.backend.dto.ShopLocationDto;
-import com.sun.source.tree.ReturnTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,8 +31,12 @@ public class ShopFinderServiceImp implements ShopFinderService{
         List<ShopLocationDto> foundShops = products.stream()
                 //transforms a stream of products into a stream of individual shop locations
                 .flatMap(product -> webSearchService.findShopLocations(product).stream())
+                .distinct()//process each store name only once
                 //for each shop location call geocodingService
-                .map(shopLocation -> geocodingService.geocode(shopLocation))
+                .map(shopName -> {
+                    logger.info("Attempting to geocode store '{}'", shopName);
+                    return geocodingService.geocode(shopName);
+                })
                 //filter out any locations the geocoding couldn't find
                 .filter(Optional::isPresent)
                 //get the ShopLocationDto from the Optional
