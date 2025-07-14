@@ -1,14 +1,16 @@
 package com.buybeacon.backend.scraper.common;
 
 import org.jsoup.Jsoup;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
 
 import java.io.IOException;
 
 /**
  * A JSoup-based implementation of the HtmlFetcher interface.
  */
-@Component
+//@Component
+//@Primary
+@Profile("!test")
 public class JSoupHtmlFetcher implements HtmlFetcher {
     @Override
     public String fetchHtml(String url) throws IOException {

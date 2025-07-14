@@ -1,6 +1,7 @@
 package com.buybeacon.backend.service;
 
 import com.buybeacon.backend.dto.ShopLocationDto;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -12,12 +13,13 @@ import java.util.Optional;
  * development and testing
  */
 @Service
+@Profile("test")
 public class MockGeocodingServiceImp implements GeocodingService {
     @Override
     public Optional<ShopLocationDto> geocode(String locationQuery) {
         //replace with HTTP call for service like Google Geocoding API.
         if(locationQuery != null || !locationQuery.isBlank()){
-            return Optional.of(new ShopLocationDto(44.46737908810667, 26.07814219072258));
+            return Optional.of(new ShopLocationDto("Auchan", 44.46737908810667, 26.07814219072258));
         }
         return Optional.empty();
     }

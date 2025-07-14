@@ -4,6 +4,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import java.util.Map;
  */
 @Component
 public class JSoupHtmlParser implements HtmlParser {
+    private static final Logger logger = LoggerFactory.getLogger(JSoupHtmlParser.class);
 
     @Override
     public List<Map<String, String>> parseHtml(String rawHtml, String itemSelector, Map<String, String> attributeSelectors, Map<String, String> urlAttribute) {
@@ -28,54 +31,70 @@ public class JSoupHtmlParser implements HtmlParser {
             Map<String, String> itemData = new HashMap<>();
             boolean allAttributesFound = true;
 
-            // Extract standard text attributes
-            allAttributesFound = isAllAttributesFound(attributeSelectors, item, itemData, allAttributesFound);
+            for (Map.Entry<String, String> entry : attributeSelectors.entrySet()){
+                String key = entry.getKey();
+                String selector = entry.getValue();
+                Element element = item.selectFirst(selector);
+
+                if (element != null) {
+                    String extractedText;
+                    // Special handling for price attribute on some sites (retained for flexibility)
+                    if ("price".equals(key) && element.hasAttr("data-price-amount")) {
+                            extractedText = element.attr("data-price-amount");
+                        } else {
+                            extractedText = element.text();
+                        }
+                        // --- Data Cleaning and Validation Step for shop names ---
+                    if ("name".equals(key) && !isValidShopName(extractedText)) {
+                            logger.warn("Filtered out invalid or non-store result: {}", extractedText);
+                            allAttributesFound = false;
+                            break; // Skip this item entirely if the name is invalid
+                        }
+                    itemData.put(key, extractedText);
+                    } else {
+                    allAttributesFound = false;
+                    break;
+                }
+            }
 
             if (!allAttributesFound) continue;
 
             // Extract URL attributes
-            allAttributesFound = isAttributesFound(urlAttribute, item, itemData, allAttributesFound);
-
-            if(allAttributesFound){
-                parsedData.add(itemData);
+            for (Map.Entry<String, String> entry : urlAttribute.entrySet()) {
+                    String key = entry.getKey();
+                    String selector = entry.getValue();
+                    Element element = item.selectFirst(selector);
+                    if (element != null) {
+                            itemData.put(key, element.attr("href"));
+                        } else {
+                            allAttributesFound = false;
+                            break;
+                        }
+                }
+                if (allAttributesFound) {
+                    parsedData.add(itemData);
+                }
             }
-        }
         return parsedData;
     }
 
-    private static boolean isAttributesFound(Map<String, String> urlAttribute, Element item, Map<String, String> itemData, boolean allAttributesFound) {
-        for(Map.Entry<String, String> entry : urlAttribute.entrySet()){
-            String attributeName = entry.getKey();
-            String selector = entry.getValue();
-            Element element = item.selectFirst(selector);
-
-            if (element != null) {
-                itemData.put(attributeName, element.attr("href"));
-            } else {
-                allAttributesFound = false;
-                break;
+    /**
+     * Validates if the extracted text is likely a real store name.
+     * @param shopName The text extracted from the search result.
+     * @return true if the name is considered valid, false otherwise.
+     */
+     private boolean isValidShopName(String shopName) {
+        if (shopName == null || shopName.isBlank()) {
+                return false;
             }
-        }
-        return allAttributesFound;
-    }
-
-    private static boolean isAllAttributesFound(Map<String, String> attributeSelectors, Element item, Map<String, String> itemData, boolean allAttributesFound) {
-        for (Map.Entry<String, String> entry : attributeSelectors.entrySet()){
-            String attributeName = entry.getKey();
-            String selector = entry.getValue();
-            Element element = item.selectFirst(selector);
-
-            if (element != null){
-                if ("price".equals(attributeName) && element.hasAttr("data-price-ammount")){
-                    itemData.put(attributeName, element.attr("data-price-ammount"));
-                }else {
-                    itemData.put(attributeName, element.text());
-                }
-            }else {
-                allAttributesFound = false;
-                break;
+        // Filter out results that are clearly URLs or contain URL-like text
+         // or are too long to be a simple store name
+        if (shopName.contains(".ro") || shopName.contains(".com")
+                || shopName.contains("http") || shopName.contains("www")
+                || shopName.length() > 100) {
+                return false;
             }
-        }
-        return allAttributesFound;
-    }
+        // Add any other filtering rules you discover here
+         return true;
+     }
 }
