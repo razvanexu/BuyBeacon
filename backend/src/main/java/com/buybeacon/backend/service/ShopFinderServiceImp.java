@@ -2,9 +2,11 @@ package com.buybeacon.backend.service;
 
 import com.buybeacon.backend.client.GooglePlacesClient;
 import com.buybeacon.backend.dto.ShopLocationDto;
+import com.buybeacon.backend.exception.ApiException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -40,13 +42,24 @@ public class ShopFinderServiceImp implements ShopFinderService{
             try{
                 logger.info("Querying Google Places API for shop: '{}'", shopName);
                 JsonNode response = googlePlacesClient.findPlaces(shopName + " near me");
-                if(!response.isNull() && (response.path("status").asText()).equals("OK")){
-                    for(JsonNode result : response.path("results")){
+
+                if(response == null){
+                    throw new ApiException("No response from Google Places API for query: " + shopName, HttpStatus.SERVICE_UNAVAILABLE);
+                }
+
+                String status = response.path("status").asText();
+                if(!"OK".equals(status) && !"ZERO_RESULTS".equals(status)){
+                    logger.error("Google Places API returned error status: {} for query: {}", status, shopName);
+                    throw new ApiException("Google Places API error: " + status, HttpStatus.BAD_GATEWAY);
+                }
+
+                if("OK".equals(status)){
+                    for(JsonNode result : response.path("name")){
                         String name = result.path("name").asText();
                         JsonNode location = result.path("geometry").path("location");
-                        double lat = location.path("lat").asDouble();
-                        double lng = location.path("lat").asDouble();
-                        allShops.add(new ShopLocationDto(name, lat, lng));
+                        allShops.add(new ShopLocationDto(name,
+                                location.path("lat").asDouble(),
+                                location.path("lng").asDouble()));
                     }
                 }
             }catch (Exception e){

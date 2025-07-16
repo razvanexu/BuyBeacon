@@ -23,11 +23,11 @@ class JSoupHtmlParserTest {
         String rawHtml = "<html><body>" +
                 "<div class='productItem'>" +
                 "<h2 class='productItem-name'><a href='https://example.com/product1'>Product One</a></h2>" +
-                "<span class='price price-final' data-price-ammount='10.50'>$10.50</span>" +
+                "<span class='price price-final' data-price-ammount='10.50'>10.50</span>" +
                 "</div>" +
                 "<div class='productItem'>" +
                 "<h2 class='productItem-name'><a href='https://example.com/product2'>Product Two</a></h2>" +
-                "<span class='price price-final' data-price-ammount='25.00'>$25.00</span>" +
+                "<span class='price price-final' data-price-ammount='25.00'>25.00</span>" +
                 "</div>" +
                 "</body></html>";
         String itemSelector = ".productItem";
