@@ -42,10 +42,7 @@ public class ShopFinderServiceImp implements ShopFinderService{
             try{
                 logger.info("Querying Google Places API for shop: '{}'", shopName);
                 JsonNode response = googlePlacesClient.findPlaces(shopName + " near me");
-
-                if(response == null){
-                    throw new ApiException("No response from Google Places API for query: " + shopName, HttpStatus.SERVICE_UNAVAILABLE);
-                }
+                logger.info("Google Places API raw response for '{}'", shopName);
 
                 String status = response.path("status").asText();
                 if(!"OK".equals(status) && !"ZERO_RESULTS".equals(status)){
@@ -54,7 +51,7 @@ public class ShopFinderServiceImp implements ShopFinderService{
                 }
 
                 if("OK".equals(status)){
-                    for(JsonNode result : response.path("name")){
+                    for(JsonNode result : response.path("results")){
                         String name = result.path("name").asText();
                         JsonNode location = result.path("geometry").path("location");
                         allShops.add(new ShopLocationDto(name,

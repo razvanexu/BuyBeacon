@@ -49,7 +49,7 @@ public class ShopFinderController {
             return ResponseEntity.badRequest().build();
         }
 
-        logger.info("Handling POST request on api/reminders");
+        logger.info("Handling POST request on api/shops/find");
         List<ShopLocationDto> shopLocations = shopFinderService.findShops(requestDto.products());
         return ResponseEntity.ok(shopLocations);
     }
