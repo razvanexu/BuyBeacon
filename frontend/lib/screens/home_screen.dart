@@ -78,7 +78,13 @@ class _HomeScreenState extends State<HomeScreen> {
     // and rebuilds the ListView whenever notifyListeners() is called.
     return Consumer<ProductProvider>(
         builder: (context, provider, child){
-          if(provider.products.isEmpty){
+          if(!provider.isInitialized){
+            return const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+            );
+          } else  if(provider.products.isEmpty){
             return const Expanded(
                 child: Center(
                   child: Text('Your shopping list is empty.')

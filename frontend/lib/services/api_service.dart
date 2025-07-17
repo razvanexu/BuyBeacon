@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -18,7 +19,7 @@ class ApiService{
   // the host machine's localhost (i.e., your computer).
   // If using a physical Android device, replace this with your computer's
   // local network IP address (e.g., 'http://192.168.1.100:8080').
-  final String _baseUrl = 'http://10.0.2.2:8080';
+  final String _baseUrl = 'http://192.168.0.180:8080';
 
   Future<List<ShopLocation>> findShops(List<Product> products) async {
     if(products.isEmpty){
@@ -26,7 +27,7 @@ class ApiService{
       return [];
     }
     //endpoint
-    final url = Uri.parse('$_baseUrl/api/reminders');
+    final url = Uri.parse('$_baseUrl/api/shops/find');
 
     //extract product names
     final productNames = products.map((p) => p.name).toList();
@@ -35,30 +36,73 @@ class ApiService{
     final body = jsonEncode({
       'products': productNames});
 
+    // Log the full request object before sending
+    final request = http.Request('POST', url)
+      ..headers['Content-type'] = 'application/json'
+      ..body = body;
+    log('Sending HTTP Request: ${request.method} ${request.url}', name: 'ApiService');
+    request.headers.forEach((key, value) => log('  Header: $key = $value', name: 'ApiService'));
+    log('  Body: ${request.body}', name: 'ApiService');
+
     log('Sending POST request to $url with body: $body', name: 'ApiService');
 
-    try{
+    try {
       final response = await http.post(
           url,
           headers: {
             'Content-type': 'application/json'
           },
           body: body
-      );
+      ).timeout(const Duration(seconds: 30));
 
-      if(response.statusCode == 200){
+      // Log the full response object after receiving
+      log('Received HTTP Response:', name: 'ApiService');
+      log('  Status Code: ${response.statusCode}', name: 'ApiService');
+      response.headers.forEach((key, value) => log('  Header: $key = $value', name: 'ApiService'));
+      log('  Body: ${response.body}', name: 'ApiService');
+
+      if (response.statusCode == 200) {
+        log('Raw response body: ${response.body}', name: 'ApiService');
         //if success code, parse json
-        final List<dynamic> decodedJson = jsonDecode(response.body);
-        log('Received successful response with ${decodedJson.length} locations.', name: 'ApiService');
-        return decodedJson.map((json) => ShopLocation.fromMap(json)).toList();
-      }else{
-        log(
-          'API request failed with status: ${response.statusCode}.',
-          name: 'ApiService',
-          error: 'Response body: ${response.body}'
-        );
-        return [];
+        try {
+          final List<dynamic> decodedJson = jsonDecode(response.body);
+          log('Received successful response with ${decodedJson
+              .length} locations.', name: 'ApiService');
+
+          final locations = decodedJson.map((json) {
+            try {
+              return ShopLocation.fromMap(json);
+            } catch (e, stackTrace) {
+              log('Error parsing a single ShopLocation object: $json',
+                  name: 'ApiService', error: e, stackTrace: stackTrace);
+              return null;
+            }
+          })
+              .where((location) => location != null)
+              .cast<ShopLocation>()
+              .toList();
+
+          log('Successfully parsed ${locations.length} locations.',
+              name: 'ApiService');
+          return locations;
+        }catch(e, stackTrace) {
+            log('Error decoding or parsing the JSON response body.',
+                name: 'ApiService', error: e, stackTrace: stackTrace);
+            return [];
+        }
+        //   return decodedJson.map((json) => ShopLocation.fromMap(json)).toList();
+        }else{
+          log(
+            'API request failed with status: ${response.statusCode}.',
+            name: 'ApiService',
+            error: 'Response body: ${response.body}'
+          );
+          return [];
       }
+    }on TimeoutException catch(e, stackTrace){
+      log('The request to the backend timed out.',
+          error: e, stackTrace: stackTrace, name: 'ApiService');
+      return [];
     }catch(e, stackTrace){
       log(
         'An exception occurred calling findShops API.',

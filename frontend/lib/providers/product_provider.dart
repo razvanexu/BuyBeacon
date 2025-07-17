@@ -54,6 +54,8 @@ class ProductProvider extends ChangeNotifier{
         error: e,
         stackTrace: stackTrace
       );
+    }finally{
+      notifyListeners();
     }
   }
 
@@ -68,7 +70,7 @@ class ProductProvider extends ChangeNotifier{
   Future<void> _updateGeofences()async{
     if(products.isEmpty){
       log('No products, clearing all geofences.', name: 'ProductProvider');
-      //ToDo: clearGeofencesMethod and call it here.
+      await _locationService.clearGeoFences();
       return;
     }
 
@@ -79,9 +81,15 @@ class ProductProvider extends ChangeNotifier{
     }
   }
 
-
   Future<void> addProduct(String name) async {
       if (name.isEmpty) return;
+
+      final isDuplicate = _products.any((p) => p.name.toLowerCase() == name.toLowerCase());
+      if(isDuplicate){
+        log('Product "$name" already exists in the list.', name: 'ProductProvider');
+        return;
+
+      }
       try{
         final newProduct = Product(name: name);
         await _databaseService.addProduct(newProduct);

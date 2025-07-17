@@ -160,6 +160,15 @@ class MockLocationService extends _i1.Mock implements _i11.LocationService {
             returnValueForMissingStub: _i7.Future<void>.value(),
           )
           as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> clearGeoFences() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearGeoFences, []),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
 }
 
 /// A class which mocks [ProductProvider].

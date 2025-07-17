@@ -25,12 +25,19 @@ class LocationService{
     //listen to geofence events
     bg.BackgroundGeolocation.ready(bg.Config(
       desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 10.0, //distance in meters (horizaontally) from the location
+      distanceFilter: 10.0, //distance in meters (horizontally) from the location
       stopOnTerminate: false, //Continue tracking after the app is terminated
-      startOnBoot: true, //Restart backround tracking after devise reboot
+      startOnBoot: true, //Restart background tracking after devise reboot
       logLevel: bg.Config.LOG_LEVEL_VERBOSE,
       geofenceProximityRadius: 1000, //default radius in meters for geofencing
       debug: true, //enable debug sounds / notifications
+      notification: bg.Notification(
+        smallIcon: '@mipmap/ic_launcher',
+        channelId: 'buybeacon_location_channel',
+        channelName: 'BuyBeacon Location Service',
+        title: 'BuyBeacon is running',
+        text: 'Tracking your location in the background',
+      )
     )).then((bg.State state){
       if(!state.enabled){
         //start tracking service
@@ -75,5 +82,10 @@ class LocationService{
         log('Error adding geofence: $e', name: 'LocationService', error: e);
       }
     }
+  }
+
+  Future<void> clearGeoFences() async{
+    log('Clearing all geofences', name: 'LocationService');
+    await bg.BackgroundGeolocation.removeGeofences();
   }
 }
