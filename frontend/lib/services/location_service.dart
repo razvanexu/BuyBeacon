@@ -8,9 +8,9 @@ class LocationService{
   //Singleton Instance
   static final LocationService _instance = LocationService._internal();
   factory LocationService() => _instance;
-  // LocationService._internal();
 
   final NotificationService notificationService;
+  final Map<String, ShopLocation> _geofenceData = {};
 
   LocationService._internal() : notificationService = NotificationService();
 
@@ -54,9 +54,20 @@ class LocationService{
     // (ex. "you are near {store name} that might have product x")
     if(event.action == 'ENTER'){
       log('User entered geofence: ${event.identifier}', name: 'LocationService');
+
+      final locationData = _geofenceData[event.identifier];
+      String body;
+      if(locationData != null && locationData.products.isNotEmpty){
+        final storeName = locationData.name;
+        final products = locationData.products.join(', ');
+        body = 'You are near $storeName, which might have: $products';
+      }else{
+        body = 'You are near a store that might have an item on your list!';
+      }
+      
       notificationService.showNotification(
           title: 'BuyBeacon reminder',
-          body: 'You are near a store that might have an item on your list!',
+          body: body,
           payload: event.identifier
       );
     }
@@ -66,8 +77,13 @@ class LocationService{
   Future<void> addGeofences(List<ShopLocation> locations) async{
     log('Adding ${locations.length} geofences.', name: 'LocationService');
     await bg.BackgroundGeolocation.removeGeofences(); //clear old fences first
+    _geofenceData.clear();
     for(var location in locations){
       try{
+        final identifier = 'shop_${location.latitude}_${location.longitude}';
+        //store location data in cache
+        _geofenceData[identifier] = location;
+
         await bg.BackgroundGeolocation.addGeofence(bg.Geofence(
           identifier: 'shop_${location.latitude}_${location.longitude}', //unique id
           radius: 500, //radius in meters
@@ -87,5 +103,6 @@ class LocationService{
   Future<void> clearGeoFences() async{
     log('Clearing all geofences', name: 'LocationService');
     await bg.BackgroundGeolocation.removeGeofences();
+    _geofenceData.clear();
   }
 }

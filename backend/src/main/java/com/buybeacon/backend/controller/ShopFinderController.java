@@ -1,7 +1,7 @@
 package com.buybeacon.backend.controller;
 
 import com.buybeacon.backend.dto.ProductSearchRequestDto;
-import com.buybeacon.backend.dto.ShopLocationDto;
+import com.buybeacon.backend.dto.ShopResponseDto;
 import com.buybeacon.backend.service.ShopFinderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class ShopFinderController {
      * @return A response entity containing the list of found shop locations.
      */
     @PostMapping("/shops/find")
-    public ResponseEntity<List<ShopLocationDto>> findShops(@RequestBody ProductSearchRequestDto requestDto){
+    public ResponseEntity<List<ShopResponseDto>> findShops(@RequestBody ProductSearchRequestDto requestDto){
         // In the final implementation app, with a database, save requestDto.getProducts() for the user.
         // Then, a GET /api/shops endpoint would trigger the findShops logic.
         // For now, the execution of the logic is directly here.
@@ -50,7 +50,7 @@ public class ShopFinderController {
         }
 
         logger.info("Handling POST request on api/shops/find");
-        List<ShopLocationDto> shopLocations = shopFinderService.findShops(requestDto.products());
+        List<ShopResponseDto> shopLocations = shopFinderService.findShops(requestDto.products());
         return ResponseEntity.ok(shopLocations);
     }
 }
