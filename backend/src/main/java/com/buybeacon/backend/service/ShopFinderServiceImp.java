@@ -31,6 +31,7 @@ public class ShopFinderServiceImp implements ShopFinderService{
 
     @Override
     public List<ShopResponseDto> findShops(List<String> products) {
+        //TODO: add null check
         Map<String, List<String>> productToShopNames = products.stream()
                         .collect(Collectors.toMap(
                                 product -> product,
@@ -47,12 +48,14 @@ public class ShopFinderServiceImp implements ShopFinderService{
                                         Collectors.mapping(Map.Entry::getValue, Collectors.toList())
                                 ));
         logger.info("Found {} unique potential shop names from web search.", shopNameToProducts.size());
+        //TODO: clarify this comment
 
-        List<String> potentialShopNames = products.stream()
-                .flatMap(product -> webSearchService.findShopLocations(product).stream())
-                .distinct()
-                .toList();
-        logger.info("Found {} unique potential shop names from web search.", potentialShopNames.size());
+//        List<String> potentialShopNames = products.stream()
+//                .flatMap(product -> webSearchService.findShopLocations(product).stream())
+//                .distinct()
+//                .toList(); //TODO: inlcude this in the first findShopLocation call, implement distinct hashcode and equals in DTO
+//        logger.info("Found {} unique potential shop names from web search.", potentialShopNames.size());
+//        //TODO: clarify this comment
 
         List<ShopResponseDto> allShops = new ArrayList<>();
         for(Map.Entry<String, List<String>> entry : shopNameToProducts.entrySet()){
@@ -67,7 +70,7 @@ public class ShopFinderServiceImp implements ShopFinderService{
                 if(!"OK".equals(status) && !"ZERO_RESULTS".equals(status)){
                     logger.error("Google Places API returned error status: {} for query: {}", status, shopName);
                     throw new ApiException("Google Places API error: " + status, HttpStatus.BAD_GATEWAY);
-                }
+                } //TODO: reevaluate these conditions
 
                 if("OK".equals(status)){
                     for(JsonNode result : response.path("results")){
