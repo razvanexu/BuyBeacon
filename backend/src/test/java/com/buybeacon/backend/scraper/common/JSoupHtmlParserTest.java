@@ -1,8 +1,10 @@
 package com.buybeacon.backend.scraper.common;
 
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +40,8 @@ class JSoupHtmlParserTest {
         Map<String, String> urlAttribute = Map.of("url", ".productItem-name a");
 
         // Act
-        List<Map<String, String>> result = htmlParser.parseHtml(rawHtml, itemSelector, attributeSelectors, urlAttribute);
+        List<Map<String, String>> result = htmlParser.parseHtml(rawHtml, itemSelector, attributeSelectors,
+                urlAttribute);
 
         // Assert
         assertNotNull(result);
@@ -55,8 +58,34 @@ class JSoupHtmlParserTest {
         assertEquals("https://example.com/product2", product2.get("url"));
     }
 
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {
+            " ",
+            "www.some-site.com",
+            "https://another-site.ro",
+            "http://a-third.site",
+            "a.very.long.name.that.is.definitely.not.a.shop.name.and.exceeds.the.one.hundred.character.limit.for.sure" +
+                    ".com",
+            "just-a-site.ro"
+    })
+    void parseHtml_shouldFilterInvalidFileNames_whenHtmlIsValid(String invalidName) {
+        //ARRANGE
+        String rawHtml = "<div><div class='item'><span class='name'>" + invalidName + "</span></div></div>";
+
+        String itemSelector = ".item";
+        Map<String, String> attributeSelectors = Map.of("name", ".name");
+
+        //ACT
+        List<Map<String, String>> result = htmlParser.parseHtml(rawHtml, itemSelector, attributeSelectors, Map.of());
+
+        //ASSERT
+        assertNotNull(result);
+        assertTrue(result.isEmpty(), "Parser should filter out invalid name: '" + invalidName + "'");
+    }
+
     @Test
-    void  parse_shouldReturnEmptyList_whenNoItemsMatchSelector(){
+    void parse_shouldReturnEmptyList_whenNoItemsMatchSelector() {
         //Arrange
         String rawHtml = "<html><body></body></html>";
         String itemSelector = ".productItem";
@@ -70,5 +99,29 @@ class JSoupHtmlParserTest {
         //ASSERT
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void parseHtml_shouldSkipItemsWithMissingAttributes_whenHtmlIsValid() {
+        //ARRANGE
+        String rawHtml = "<div>" +
+                "  <div class='item'>" +
+                "    <span class='name'>Complete Item</span>" +
+                "    <span class='price'>9.99</span>" +
+                "  </div>" +
+                "  <div class='item'>" +
+                "    <span class='name'>Item Missing Price</span>" +
+                "  </div>" +
+                "</div>";
+        String itemSelector = ".item";
+        Map<String, String> attributeSelectors = Map.of("name", ".name", "price", ".price");
+
+        //ACT
+        List<Map<String, String>> result = htmlParser.parseHtml(rawHtml, itemSelector, attributeSelectors, Map.of());
+
+        //ASSERT
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Complete Item", result.get(0).get("name"));
     }
 }

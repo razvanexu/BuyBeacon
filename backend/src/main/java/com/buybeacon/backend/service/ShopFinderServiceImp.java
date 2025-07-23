@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
  * Dependency injection for WebSearchService and GeocodingService;
  */
 @Service
-public class ShopFinderServiceImp implements ShopFinderService{
+public class ShopFinderServiceImp implements ShopFinderService {
     private static final Logger logger = LoggerFactory.getLogger(ShopFinderServiceImp.class);
 
     private final WebSearchService webSearchService;
@@ -29,60 +30,73 @@ public class ShopFinderServiceImp implements ShopFinderService{
         this.googlePlacesClient = googlePlacesClient;
     }
 
+    private static Map<String, List<String>> getShopToProducts(Map<String, List<String>> productToShopNames) {
+        return productToShopNames
+                .entrySet()
+                .stream()
+                .flatMap(entry -> entry.getValue()
+                        .stream()
+                        .map(shopName -> Map.entry(shopName, entry.getKey())))
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())
+                ));
+    }
+
+    private String isSuccessfulResponse(JsonNode response, String shopName) {
+        String status = response.path("status").asText();
+        if (!"OK".equals(status) && !"ZERO_RESULTS".equals(status)) {
+            logger.error("Google Places API returned error status: {} for query: {}", status, shopName);
+            throw new ApiException("Google Places API error: " + status, HttpStatus.BAD_GATEWAY);
+        }
+        return status;
+    }
+
+    private void createShopResponseDto(String status, JsonNode response, List<ShopResponseDto> allShops,
+                                       List<String> associatedProducts) {
+        if ("OK".equals(status)) {
+            for (JsonNode result : response.path("results")) {
+                String name = result.path("name").asText();
+                JsonNode location = result.path("geometry").path("location");
+                allShops.add(new ShopResponseDto(name,
+                        location.path("lat").asDouble(),
+                        location.path("lng").asDouble(),
+                        associatedProducts));
+            }
+        }
+    }
+
     @Override
     public List<ShopResponseDto> findShops(List<String> products) {
-        //TODO: add null check
+        if (products == null || products.isEmpty()) {
+            logger.warn("findShops called with a null or empty list");
+            return Collections.emptyList();
+        }
         Map<String, List<String>> productToShopNames = products.stream()
-                        .collect(Collectors.toMap(
-                                product -> product,
-                                webSearchService::findShopLocations
-                        ));
+                .collect(Collectors.toMap(
+                        product -> product,
+                        webSearchService::findShopLocations
+                ));
 
-        Map<String, List<String>> shopNameToProducts = productToShopNames
-                .entrySet().stream()
-                        .flatMap(entry -> entry.getValue()
-                                .stream()
-                                .map(shopName -> Map.entry(shopName, entry.getKey())))
-                                .collect(Collectors.groupingBy(
-                                        Map.Entry::getKey,
-                                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())
-                                ));
+        Map<String, List<String>> shopNameToProducts = getShopToProducts(productToShopNames);
         logger.info("Found {} unique potential shop names from web search.", shopNameToProducts.size());
-        //TODO: clarify this comment
 
-//        List<String> potentialShopNames = products.stream()
-//                .flatMap(product -> webSearchService.findShopLocations(product).stream())
-//                .distinct()
-//                .toList(); //TODO: inlcude this in the first findShopLocation call, implement distinct hashcode and equals in DTO
-//        logger.info("Found {} unique potential shop names from web search.", potentialShopNames.size());
-//        //TODO: clarify this comment
+        return getGeocodedShops(shopNameToProducts);
+    }
 
+    private List<ShopResponseDto> getGeocodedShops(Map<String, List<String>> shopNameToProducts) {
         List<ShopResponseDto> allShops = new ArrayList<>();
-        for(Map.Entry<String, List<String>> entry : shopNameToProducts.entrySet()){
+        for (Map.Entry<String, List<String>> entry : shopNameToProducts.entrySet()) {
             String shopName = entry.getKey();
             List<String> associatedProducts = entry.getValue();
-            try{
+            try {
                 logger.info("Querying Google Places API for shop: '{}'", shopName);
                 JsonNode response = googlePlacesClient.findPlaces(shopName + " near me");
-                logger.info("Google Places API raw response for '{}'", shopName);
 
-                String status = response.path("status").asText();
-                if(!"OK".equals(status) && !"ZERO_RESULTS".equals(status)){
-                    logger.error("Google Places API returned error status: {} for query: {}", status, shopName);
-                    throw new ApiException("Google Places API error: " + status, HttpStatus.BAD_GATEWAY);
-                } //TODO: reevaluate these conditions
+                String status = isSuccessfulResponse(response, shopName);
 
-                if("OK".equals(status)){
-                    for(JsonNode result : response.path("results")){
-                        String name = result.path("name").asText();
-                        JsonNode location = result.path("geometry").path("location");
-                        allShops.add(new ShopResponseDto(name,
-                                location.path("lat").asDouble(),
-                                location.path("lng").asDouble(),
-                                associatedProducts));
-                    }
-                }
-            }catch (Exception e){
+                createShopResponseDto(status, response, allShops, associatedProducts);
+            } catch (Exception e) {
                 logger.error("Error querying Google Places API for shop: '{}'", shopName, e);
             }
         }
