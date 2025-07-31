@@ -1,8 +1,8 @@
+import 'package:buy_beacon/models/shop_location.dart';
+import 'package:buy_beacon/services/location_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/models/shop_location.dart';
-import 'package:frontend/services/location_service.dart';
 import 'package:mockito/mockito.dart';
 
 import '../providers/product_provider_test.mocks.dart';
@@ -12,35 +12,50 @@ void main() {
 
   late LocationService locationService;
   late MockNotificationService mockNotificationService;
+  bg.Location? mockCurrentLocation;
 
   const MethodChannel channel = MethodChannel(
     'com.transistorsoft/flutter_background_geolocation/methods',
   );
 
-  setUp(() {
-    mockNotificationService = MockNotificationService();
-
+  void setupMockMethodCallHandler() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          if (methodCall.method == 'addGeofence' || methodCall.method == 'addGeofences') {
-            return true;
+          switch (methodCall.method) {
+            case 'addGeofence':
+            case 'addGeofences':
+            case 'removeGeofences':
+              return true;
+            case 'ready':
+              return {'enabled': true};
+            case 'getCurrentPosition': // Return the mock location if it's set, otherwise a default.
+              if (mockCurrentLocation != null) {
+                return mockCurrentLocation!.map;
+              }
+              return {
+                'coords': {'latitude': 0.0, 'longitude': 0.0},
+                'activity': {'type': 'still', 'confidence': 100},
+                'battery': {'is_charging': false, 'level': 1.0},
+                'timestamp': '2025-07-27T10:00:00Z',
+                'uuid': 'default-uuid',
+                'is_moving': false,
+                'odometer': 0.0,
+              };
+            default:
+              return null;
           }
-
-          if (methodCall.method == 'removeGeofences') {
-            return true;
-          }
-
-          if (methodCall.method == 'ready') {
-            return {'enabled': true};
-          }
-          return null;
         });
+  }
+
+  setUp(() {
+    mockNotificationService = MockNotificationService();
+    setupMockMethodCallHandler();
 
     locationService = LocationService.testable(
       notificationService: mockNotificationService,
     );
 
-    when(mockNotificationService.initialize()).thenAnswer((_) async {});
+    mockCurrentLocation = null;
   });
 
   tearDown(() {
@@ -85,66 +100,143 @@ void main() {
     });
   }
 
+  bg.Location createMockLocation(double lat, double lon) {
+    return bg.Location({
+      'coords': {
+        'latitude': lat,
+        'longitude': lon,
+        'accuracy': 1.0,
+        'altitude': 0.0,
+        'heading': 0.0,
+        'speed': 0.0,
+        'ellipsoidal_altitude': 0.0,
+      },
+      'activity': {'type': 'still', 'confidence': 100},
+      'age': 0,
+      'battery': {'is_charging': false, 'level': 1.0},
+      'timestamp': DateTime.now().toIso8601String(),
+      'uuid': 'mock-location-uuid',
+      'is_moving': false,
+      'odometer': 0.0,
+    });
+  }
+
   test(
-    'onGeofence ENTER event should trigger a generic notification when no location data is cached',
+    'onGeofence ENTER should trigger notification ONLY if it is the nearest shop',
     () async {
       // ARRANGE
-      // Set up mock event return
+      // 2 shops, near and far
+      final nearShop = ShopLocation(
+        name: 'Near Shop',
+        latitude: 10.0,
+        longitude: 10.0,
+        products: ['A'],
+      );
+      final farShop = ShopLocation(
+        name: 'Far Shop',
+        latitude: 20.0,
+        longitude: 20.0,
+        products: ['B'],
+      );
+      await locationService.addGeofences([nearShop, farShop]);
+
+      mockCurrentLocation = createMockLocation(10.001, 10.001);
+
       final geofenceEvent = createTestGeofenceEvent(
-        identifier: 'unknown_geofence',
+        identifier: 'shop_${nearShop.latitude}_${nearShop.longitude}',
         action: 'ENTER',
+        lat: nearShop.latitude,
+        lon: nearShop.longitude,
       );
 
       // ACT
       // Manually call the private _onGeofence method with our fake event.
       // This requires making it public for testing.
-      locationService.onGeofence(geofenceEvent);
+      await locationService.onGeofence(geofenceEvent);
 
       // ASSERT
       // Verify that showNotification was called exactly once.
       verify(
         mockNotificationService.showNotification(
           title: 'BuyBeacon reminder',
-          body: 'You are near a store that might have an item on your list!',
-          payload: 'unknown_geofence',
+          body: 'You are near Near Shop which might have A',
+          payload: 'Near Shop',
         ),
       ).called(1);
     },
   );
 
   test(
-    'onGeofence ENTER event should trigger a specific notification when location data is cached',
+    'onGeofence ENTER should NOT trigger notification if it is NOT the nearest shop',
     () async {
       //ARRANGE
-      final shopLocation = ShopLocation(
-        name: 'Test Shop',
-        latitude: 45.0,
-        longitude: -75.0,
-        products: ['Coffee', 'Milk'],
+      // 2 shops, near and far
+      final nearShop = ShopLocation(
+        name: 'Near Shop',
+        latitude: 10.0,
+        longitude: 10.0,
+        products: ['A'],
       );
-      final geofenceIdentifier =
-          'shop_${shopLocation.latitude}_${shopLocation.longitude}';
+      final farShop = ShopLocation(
+        name: 'Far Shop',
+        latitude: 20.0,
+        longitude: 20.0,
+        products: ['B'],
+      );
+      await locationService.addGeofences([nearShop, farShop]);
 
-      await locationService.addGeofences([shopLocation]);
+      final geofenceIdentifier = 'shop_${farShop.latitude}_${farShop.longitude}';
+
+      mockCurrentLocation = createMockLocation(10.001, 10.001);
 
       final geofenceEvent = createTestGeofenceEvent(
         identifier: geofenceIdentifier,
         action: 'ENTER',
-        lat: shopLocation.latitude,
-        lon: shopLocation.longitude,
+        lat: farShop.latitude,
+        lon: farShop.longitude,
       );
 
       //ACT
-      locationService.onGeofence(geofenceEvent);
+      await locationService.onGeofence(geofenceEvent);
 
       //ASSERT
-      verify(
+      verifyNever(
         mockNotificationService.showNotification(
           title: 'BuyBeacon reminder',
-          body: 'You are near Test Shop, which might have: Coffee, Milk',
+          body: 'You are near Far Shop, which might have: B',
           payload: geofenceIdentifier,
         ),
-      ).called(1);
+      );
+    },
+  );
+
+  test(
+    'onGeofence ENTER adds identifier to active list and notifies listeners',
+    () async {
+      //ARRANGE
+      final shop = ShopLocation(
+        name: 'Test Shop',
+        latitude: 1.0,
+        longitude: 1.0,
+        products: [],
+      );
+      final geofenceIdentifier = 'shop_${shop.latitude}_${shop.longitude}';
+      await locationService.addGeofences([shop]);
+      mockCurrentLocation = createMockLocation(1.0, 1.0);
+
+      final geofenceEvent = createTestGeofenceEvent(
+        identifier: geofenceIdentifier,
+        action: 'ENTER',
+      );
+      int listenerCallCount = 0;
+      locationService.addListener(() => listenerCallCount++);
+
+      //ACT
+      await locationService.onGeofence(geofenceEvent);
+
+      //ASSERT
+      expect(locationService.activeGeofenceIdentifiers, contains(geofenceIdentifier));
+      expect(listenerCallCount, 1);
     },
   );
 
@@ -168,5 +260,65 @@ void main() {
         payload: anyNamed('payload'),
       ),
     );
+  });
+
+  test(
+    'onGeofence EXIT removes identifier from active list and notifies listeners',
+    () async {
+      //ARRANGE
+      final shop = ShopLocation(
+        name: 'Test shop',
+        latitude: 1.0,
+        longitude: 1.0,
+        products: [],
+      );
+      final geofenceIdentifier = 'shop_${shop.latitude}_${shop.longitude}';
+      locationService.activeGeofenceIdentifiers.add(geofenceIdentifier);
+
+      final geofenceEvent = createTestGeofenceEvent(
+        identifier: geofenceIdentifier,
+        action: 'EXIT',
+      );
+      int listenerCallCount = 0;
+      locationService.addListener(() => listenerCallCount++);
+
+      //ACT
+      locationService.onGeofence(geofenceEvent);
+
+      //ASSERT
+      expect(
+        locationService.activeGeofenceIdentifiers,
+        isNot(contains(geofenceIdentifier)),
+      );
+      expect(listenerCallCount, 1);
+    },
+  );
+
+  test('clearGeofences should also clear active geofence identifiers', () async {
+    //ARRANGE
+    locationService.activeGeofenceIdentifiers.add('some_active_geofence');
+    int listenerCallCount = 0;
+    locationService.addListener(() => listenerCallCount++);
+
+    //ACT
+    await locationService.clearGeoFences();
+
+    //ASSERT
+    expect(locationService.activeGeofenceIdentifiers, isEmpty);
+    expect(listenerCallCount, 1);
+  });
+
+  test('_onLocation updates userLocation and notifies listeners', () {
+    //ARRANGE
+    final newLocation = createMockLocation(50.0, 50.0);
+    int listereCallCount = 0;
+    locationService.addListener(() => listereCallCount++);
+
+    //ACT
+    locationService.onLocation(newLocation);
+
+    //ASSERT
+    expect(locationService.userLocation, newLocation);
+    expect(listereCallCount, 1);
   });
 }

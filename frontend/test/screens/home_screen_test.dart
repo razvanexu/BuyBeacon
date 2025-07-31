@@ -1,10 +1,10 @@
 import 'dart:collection';
 
+import 'package:buy_beacon/models/product.dart';
+import 'package:buy_beacon/providers/product_provider.dart';
+import 'package:buy_beacon/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/models/product.dart';
-import 'package:frontend/providers/product_provider.dart';
-import 'package:frontend/screens/home_screen.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 

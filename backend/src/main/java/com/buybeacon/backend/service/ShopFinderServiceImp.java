@@ -39,8 +39,9 @@ public class ShopFinderServiceImp implements ShopFinderService {
                         .map(shopName -> Map.entry(shopName, entry.getKey())))
                 .collect(Collectors.groupingBy(
                         Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())
-                ));
+                        Collectors.collectingAndThen(Collectors.mapping(Map.Entry::getValue, Collectors.toSet()),
+                                ArrayList::new
+                        )));
     }
 
     private String isSuccessfulResponse(JsonNode response, String shopName) {
