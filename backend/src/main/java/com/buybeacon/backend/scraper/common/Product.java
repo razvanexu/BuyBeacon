@@ -6,7 +6,7 @@ public class Product {
     private String url;
 
     public Product(String name, String price, String url) {
-        this.name = name;
+        this.name = name.trim();
         this.price = price;
         this.url = url;
     }
@@ -38,9 +38,9 @@ public class Product {
     @Override
     public String toString() {
         return "Product{" +
-               "name='" + name + "'" +
-               ", price='" + price + "'" +
-               ", url='" + url + "'" +
-               '}';
+                "name='" + name + "'" +
+                ", price='" + price + "'" +
+                ", url='" + url + "'" +
+                '}';
     }
 }
