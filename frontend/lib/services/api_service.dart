@@ -99,7 +99,8 @@ class ApiService {
             error: e,
             stackTrace: stackTrace,
           );
-          return [];
+          // return [];
+          rethrow;
         }
         //   return decodedJson.map((json) => ShopLocation.fromMap(json)).toList();
       } else {
@@ -108,7 +109,8 @@ class ApiService {
           name: 'ApiService',
           error: 'Response body: ${response.body}',
         );
-        return [];
+        // return [];
+        throw ApiException('API request failed with status: ${response.statusCode}');
       }
     } on TimeoutException catch (e, stackTrace) {
       log(
@@ -117,14 +119,25 @@ class ApiService {
         stackTrace: stackTrace,
         name: 'ApiService',
       );
-      return [];
+      // return [];
+      rethrow;
     } catch (e, stackTrace) {
       log(
         'An exception occurred calling findShops API.',
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      // return [];
+      rethrow;
     }
   }
+}
+
+class ApiException implements Exception {
+  final String message;
+
+  ApiException(this.message);
+
+  @override
+  String toString() => 'ApiException: $message';
 }

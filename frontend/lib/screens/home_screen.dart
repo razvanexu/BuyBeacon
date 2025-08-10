@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
+import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/screens/map_screen.dart';
 import 'package:flutter/material.dart';
@@ -16,36 +19,93 @@ class _HomeScreenState extends State<HomeScreen> {
   //Controller to get the text from the input field
   final TextEditingController _textController = TextEditingController();
 
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
+  StreamSubscription? _orchestratorSubscription;
+
+  // bool _isErrorSnackbarVisible = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_orchestratorSubscription == null) {
+      final orchestrator = Provider.of<ShoppingOrchestrator>(context, listen: false);
+
+      if (orchestrator.currentState.hasConnectionError) {
+        _showConnectionErrorSnackbar();
+      }
+
+      _orchestratorSubscription = orchestrator.onStateChanged.listen(_handleStateChange);
+      log('_handleStateChange called');
+    }
+  }
+
+  void _handleStateChange(ShoppingState state) {
+    log('--- _handleStateChange ---');
+    log('Received state: hasConnectionError = ${state.hasConnectionError}');
+    if (state.hasConnectionError) {
+      log(
+        'Condition state.hasConnectionError is TRUE. Calling _showConnectionErrorSnackbar...',
+      );
+      _showConnectionErrorSnackbar();
+      log('Condition state.hasConnectionError is FALSE.');
+    }
+  }
+
+  void _showConnectionErrorSnackbar() {
+    log('_showConnectionErrorSnackbar called');
+    _scaffoldMessengerKey.currentState?.removeCurrentSnackBar();
+    _scaffoldMessengerKey.currentState?.showSnackBar(
+      const SnackBar(
+        content: Text('Connection error. Please check your internet connection.'),
+        duration: Duration(seconds: 5),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _orchestratorSubscription?.cancel();
+    _textController.dispose();
+    super.dispose();
+  }
+
   //UI Builder methods
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('BuyBeacon'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.map),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MapScreen()),
-              );
-            },
-          ),
-        ],
-        //progress indicator
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: Consumer<ProductProvider>(
-            builder: (context, provider, child) {
-              return provider.isUpdatingGeofences
-                  ? const LinearProgressIndicator()
-                  : const SizedBox.shrink();
-            },
+    final orchestrator = Provider.of<ShoppingOrchestrator>(context, listen: false);
+
+    return ScaffoldMessenger(
+      key: _scaffoldMessengerKey,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('BuyBeacon'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.map),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MapScreen()),
+                );
+              },
+            ),
+          ],
+          //progress indicator
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: Consumer<ShoppingOrchestrator>(
+              builder: (context, orchestrator, child) {
+                return orchestrator.currentState.isLoading
+                    ? const LinearProgressIndicator()
+                    : const SizedBox.shrink();
+              },
+            ),
           ),
         ),
+        body: Column(children: [_buildProductInput(), _buildProductList()]),
       ),
-      body: Column(children: [_buildProductInput(), _buildProductList()]),
     );
   }
 
@@ -136,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     try {
       log('[2] Getting ProductProvider.', name: 'HomeScreen');
-      
+
       final provider = Provider.of<ProductProvider>(context, listen: false);
       log(
         '[3] ProductProvider found. Calling provider.addProduct().',
