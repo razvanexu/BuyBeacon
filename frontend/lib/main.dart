@@ -7,6 +7,7 @@ import 'package:buy_beacon/screens/map_screen.dart';
 import 'package:buy_beacon/services/geofence_service.dart';
 import 'package:buy_beacon/services/location_service.dart';
 import 'package:buy_beacon/services/notification_channel_service.dart';
+import 'package:buy_beacon/services/notification_decision_service.dart';
 import 'package:buy_beacon/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -39,7 +40,10 @@ void main() async {
 
   final productProvider = ProductProvider(productRepository: productRepository);
 
-  final geofenceService = GeofenceService(
+  final geofenceService = GeofenceService(locationService: locationService);
+
+  final notificationDecisionService = NotificationDecisionService(
+    geofenceService: geofenceService,
     notificationService: notificationService,
     locationService: locationService,
   );
@@ -63,6 +67,12 @@ void main() async {
     ),
   );
 
+  geofenceService.initialize();
+  log('[main] GeofenceService initialized.', name: 'MyAppMain');
+
+  notificationDecisionService.initialize();
+  log('[main] GeofenceService initialized.', name: 'MyAppMain');
+
   await notificationService.initialize(
     onNotificationTap: onNotificationTap,
     channels: channelService.notificationChannels,
@@ -74,8 +84,8 @@ void main() async {
   );
   log('[main] LocationService initialized.', name: 'MyAppMain');
 
-  geofenceService.initialize();
-  log('[main] GeofenceService initialized.', name: 'MyAppMain');
+  // geofenceService.initialize();
+  // log('[main] GeofenceService initialized.', name: 'MyAppMain');
 
   log('[main] Initialization complete. Running app...', name: 'MyAppMain');
 
@@ -99,6 +109,9 @@ class BuyBeaconApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     log('[BuyBeaconApp] Build method called.', name: 'MyAppMain');
+    context.watch<LocationService>();
+    context.watch<GeofenceService>();
+
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'BuyBeacon',

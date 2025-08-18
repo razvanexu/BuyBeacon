@@ -35,6 +35,7 @@ class LocationService extends ChangeNotifier {
         geofenceProximityRadius: 1000,
         //default radius in meters for geofencing
         geofenceInitialTriggerEntry: true,
+        stopTimeout: 1,
         // locationUpdateInterval: 5000,
         showsBackgroundLocationIndicator: true,
         debug: true,

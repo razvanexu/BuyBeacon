@@ -12,8 +12,35 @@ import 'package:provider/provider.dart';
 
 import '../utils/location_utils.dart';
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
+
+  @override
+  State<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  GoogleMapController? _mapController;
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
+
+  void _updateCameraPosition(bg.Location? userLocation) {
+    if (_mapController != null && userLocation?.coords != null) return;
+
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLng(
+        LatLng(userLocation!.coords.latitude, userLocation.coords.longitude),
+      ),
+    );
+  }
 
   Set<Marker> _createShopMarkers(
     List<ShopLocation> allLocations,
@@ -86,10 +113,6 @@ class MapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the orchestrator once. We don't need to listen to it here,
-    // as the StreamBuilder will handle that.
-    final orchestrator = Provider.of<ShoppingOrchestrator>(context, listen: false);
-
     // The top-level consumer listens for user location changes.
     return Consumer3<LocationService, GeofenceService, ShoppingOrchestrator>(
       builder: (context, locationService, geofenceService, orchestrator, child) {
@@ -97,12 +120,14 @@ class MapScreen extends StatelessWidget {
         final activeIdentifiers = geofenceService.activeGeofenceIdentifiers;
 
         // Show a loading indicator until we have the user's location.
-        if (userLocation == null) {
+        if (userLocation?.coords == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Nearest Shops')),
             body: const Center(child: Text("Waiting for your location...")),
           );
         }
+
+        _updateCameraPosition(userLocation);
 
         // Once we have the user's location, we build the map.
         // The StreamBuilder listens for shop location and loading state changes.
@@ -114,7 +139,7 @@ class MapScreen extends StatelessWidget {
             final isLoading = snapshot.data?.isLoading ?? false;
 
             final initialCameraPosition = LatLng(
-              userLocation.coords.latitude,
+              userLocation!.coords.latitude,
               userLocation.coords.longitude,
             );
 
@@ -142,6 +167,7 @@ class MapScreen extends StatelessWidget {
                 myLocationEnabled: true,
                 myLocationButtonEnabled: true,
                 markers: currentMarkers,
+                onMapCreated: _onMapCreated,
               ),
             );
           },

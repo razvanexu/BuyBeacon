@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:buy_beacon/services/notification_channel_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
@@ -12,13 +13,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  static const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
-    'buybeacon_channel_id',
-    'buybeacon_reminders',
-    description: 'Notifications for product reminders near stores',
-    importance: Importance.max,
-    playSound: true,
-  );
+  static const AndroidNotificationChannel androidChannel =
+      NotificationChannelService.androidReminderChannel;
 
   Future<void> initialize({
     void Function(NotificationResponse response)? onNotificationTap,
@@ -84,12 +80,15 @@ class NotificationService {
       name: 'NotificationService',
     );
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'buybeacon_reminders_channel_id',
-      'Nearby Store Reminders',
-      channelDescription: 'Notifications for product reminders near stores',
+      androidChannel.id,
+      androidChannel.name,
+      channelDescription: androidChannel.description,
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
+      ticker: 'BuyBeacon notification',
+      autoCancel: true,
+      showWhen: true,
     );
     final NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,

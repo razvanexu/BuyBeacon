@@ -24,8 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   StreamSubscription? _orchestratorSubscription;
 
-  // bool _isErrorSnackbarVisible = false;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -95,9 +93,12 @@ class _HomeScreenState extends State<HomeScreen> {
           //progress indicator
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(4.0),
-            child: Consumer<ShoppingOrchestrator>(
-              builder: (context, orchestrator, child) {
-                return orchestrator.currentState.isLoading
+            child: StreamBuilder<ShoppingState>(
+              stream: orchestrator.onStateChanged,
+              initialData: orchestrator.currentState,
+              builder: (context, snapshot) {
+                final isLoading = snapshot.data?.isLoading ?? false;
+                return isLoading
                     ? const LinearProgressIndicator()
                     : const SizedBox.shrink();
               },

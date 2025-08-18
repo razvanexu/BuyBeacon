@@ -24,7 +24,7 @@ void main() {
     mockLocationService = MockLocationService();
     mockNotificationService = MockNotificationService();
     geofenceService = GeofenceService(
-      notificationService: mockNotificationService,
+      // notificationService: mockNotificationService,
       locationService: mockLocationService,
     );
 

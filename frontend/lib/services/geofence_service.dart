@@ -3,28 +3,26 @@ import 'dart:developer';
 
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/services/location_service.dart';
-import 'package:buy_beacon/services/notification_service.dart';
-import 'package:buy_beacon/utils/location_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class GeofenceService extends ChangeNotifier {
-  final NotificationService _notificationService;
   final LocationService _locationService;
   final Map<String, ShopLocation> _geofenceData = {};
-  Timer? _debounce;
 
   final Set<String> _activeGeofenceIdentifiers = {};
+
+  final _geofenceEventController = StreamController<bg.GeofenceEvent>.broadcast();
+
+  Stream<bg.GeofenceEvent> get onGeofenceEvent => _geofenceEventController.stream;
+
+  Map<String, ShopLocation> get geofenceData => Map.unmodifiable(_geofenceData);
 
   Set<String> get activeGeofenceIdentifiers =>
       Set.unmodifiable(_activeGeofenceIdentifiers);
 
-  GeofenceService({
-    required NotificationService notificationService,
-    required LocationService locationService,
-  }) : _notificationService = notificationService,
-       _locationService = locationService {
+  GeofenceService({required LocationService locationService})
+    : _locationService = locationService {
     log('[GeofenceService] Instance created.', name: 'GeofenceService');
   }
 
@@ -34,6 +32,12 @@ class GeofenceService extends ChangeNotifier {
       name: 'GeofenceService',
     );
     bg.BackgroundGeolocation.onGeofence(_onGeofence);
+  }
+
+  @override
+  void dispose() {
+    _geofenceEventController.close();
+    super.dispose();
   }
 
   Future<void> addGeofences(List<ShopLocation> newLocations) async {
@@ -130,6 +134,7 @@ class GeofenceService extends ChangeNotifier {
       '[GeofenceService] Finished geofence diffing. Total in local cache: ${_geofenceData.length}',
       name: 'GeofenceService',
     );
+    await _locationService.getCurrentLocation();
   }
 
   Future<void> _clearGeofences() async {
@@ -157,78 +162,12 @@ class GeofenceService extends ChangeNotifier {
       '[GeofenceService] <<<<< _onGeofence EVENT RECEIVED >>>>> ID: ${event.identifier}, Action: ${event.action}',
       name: 'GeofenceService',
     );
-
+    _geofenceEventController.add(event);
     if (event.action == 'ENTER') {
       _activeGeofenceIdentifiers.add(event.identifier);
     } else if (event.action == 'EXIT') {
       _activeGeofenceIdentifiers.remove(event.identifier);
     }
-
-    // Debounce the handling to prevent rapid firing from multiple simultaneous events.
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(seconds: 2), () {
-      _handleGeofenceChange();
-      notifyListeners();
-    });
-  }
-
-  Future<void> _handleGeofenceChange() async {
-    log(
-      '[GeofenceService] Handling geofence change. Active geofences: ${_activeGeofenceIdentifiers.length}',
-      name: 'GeofenceService',
-    );
-
-    if (_activeGeofenceIdentifiers.isEmpty) {
-      return;
-    }
-
-    final currentLocation = await _locationService.getCurrentLocation();
-    if (currentLocation == null) {
-      log(
-        '[GeofenceService] Could not get current location to determine nearest shop.',
-        name: 'GeofenceService',
-      );
-      return;
-    }
-
-    ShopLocation? nearestShop;
-    double minDistance = double.infinity;
-
-    for (final activeId in _activeGeofenceIdentifiers) {
-      final shopLocation = _geofenceData[activeId];
-      if (shopLocation != null) {
-        final distance = calculateDistance(
-          LatLng(currentLocation.coords.latitude, currentLocation.coords.longitude),
-          LatLng(shopLocation.latitude, shopLocation.longitude),
-        );
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearestShop = shopLocation;
-        }
-      }
-    }
-
-    if (nearestShop != null) {
-      if (nearestShop.products.isNotEmpty) {
-        log(
-          '[GeofenceService] Determined nearest active shop: ${nearestShop.name}. Preparing notification.',
-          name: 'GeofenceService',
-        );
-        final storeName = nearestShop.name;
-        final products = nearestShop.products.join(', ');
-        final body = 'You are near $storeName which might have $products';
-        _notificationService.showNotification(
-          title: 'Buy Beacon reminder',
-          body: body,
-          payload: nearestShop.name,
-        );
-      } else {
-        log(
-          '[GeofenceService] ERROR: Nearest active shop ${nearestShop.name} has no products listed.',
-          name: 'GeofenceService',
-        );
-      }
-    }
+    notifyListeners();
   }
 }

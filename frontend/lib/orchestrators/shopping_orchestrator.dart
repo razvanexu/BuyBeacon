@@ -113,12 +113,12 @@ class ShoppingOrchestrator {
     );
 
     log(
-      'Scheduling retry attempt #${_retryAttempt} in ${cappedDelay.inMinutes} minutes.',
+      'Scheduling retry attempt #$_retryAttempt in ${cappedDelay.inMinutes} minutes.',
       name: 'ShoppingOrchestrator',
     );
 
     _retryTimer = Timer(cappedDelay, () {
-      log('Executing retry attempt #${_retryAttempt}.', name: 'ShoppingOrchestrator');
+      log('Executing retry attempt #$_retryAttempt.', name: 'ShoppingOrchestrator');
       _fetchProductsAndShops();
     });
   }
