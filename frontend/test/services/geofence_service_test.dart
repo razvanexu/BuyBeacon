@@ -4,7 +4,9 @@ import 'package:buy_beacon/services/location_service.dart';
 import 'package:buy_beacon/services/notification_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
 import 'geofence_service_test.mocks.dart';
 
@@ -13,7 +15,6 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late GeofenceService geofenceService;
-  late MockNotificationService mockNotificationService;
   late MockLocationService mockLocationService;
 
   const MethodChannel channel = MethodChannel(
@@ -22,7 +23,27 @@ void main() {
 
   setUp(() {
     mockLocationService = MockLocationService();
-    mockNotificationService = MockNotificationService();
+    when(mockLocationService.getCurrentLocation()).thenAnswer((_) async {
+      return bg.Location({
+        'uuid': 'test-uuid',
+        'timestamp': DateTime.now().toIso8601String(),
+        'is_moving': false,
+        'odometer': 0.0,
+        'age': 0,
+        'event': 'motionchange',
+        'coords': {
+          'latitude': 1.0,
+          'longitude': 1.0,
+          'accuracy': 10.0,
+          'speed': 0.0,
+          'heading': 0.0,
+          'altitude': 0.0,
+          'ellipsoidal_altitude': 0.0
+        },
+        'activity': {'type': 'still', 'confidence': 100},
+        'battery': {'is_charging': false, 'level': 1.0},
+      });
+    });
     geofenceService = GeofenceService(
       // notificationService: mockNotificationService,
       locationService: mockLocationService,
@@ -57,14 +78,11 @@ void main() {
       await geofenceService.addGeofences(locations);
 
       //ASSERT
-      expect(methodCallLog.length, 2);
-      expect(methodCallLog[0].method, 'removeGeofences');
-      expect(methodCallLog[1].method, 'addGeofence');
-      expect(methodCallLog[1].arguments, isA<Map>());
-      expect(methodCallLog.map((call) => call.method).toList(), [
-        'removeGeofences',
-        'addGeofence',
-      ]);
+      // With diff-based logic: starting from empty state, only addGeofence is called.
+      expect(methodCallLog.length, 1);
+      expect(methodCallLog[0].method, 'addGeofence');
+      expect(methodCallLog[0].arguments, isA<Map>());
+      expect(methodCallLog.map((call) => call.method).toList(), ['addGeofence']);
     });
   });
 }
