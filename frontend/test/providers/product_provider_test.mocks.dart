@@ -3,23 +3,12 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i6;
-import 'dart:collection' as _i4;
-import 'dart:ui' as _i13;
+import 'dart:async' as _i3;
 
-import 'package:buy_beacon/models/product.dart' as _i7;
-import 'package:buy_beacon/models/shop_location.dart' as _i9;
-import 'package:buy_beacon/providers/product_provider.dart' as _i14;
-import 'package:buy_beacon/services/api_service.dart' as _i8;
-import 'package:buy_beacon/services/database_service.dart' as _i5;
-import 'package:buy_beacon/services/location_service.dart' as _i10;
-import 'package:buy_beacon/services/notification_service.dart' as _i3;
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as _i12;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as _i11;
+import 'package:buy_beacon/models/product.dart' as _i4;
+import 'package:buy_beacon/models/shop_location.dart' as _i5;
+import 'package:buy_beacon/repositories/product_repository.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:sqflite/sqflite.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -35,326 +24,55 @@ import 'package:sqflite/sqflite.dart' as _i2;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeDatabase_0 extends _i1.SmartFake implements _i2.Database {
-  _FakeDatabase_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeNotificationService_1 extends _i1.SmartFake
-    implements _i3.NotificationService {
-  _FakeNotificationService_1(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeUnmodifiableListView_2<E> extends _i1.SmartFake
-    implements _i4.UnmodifiableListView<E> {
-  _FakeUnmodifiableListView_2(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-/// A class which mocks [DatabaseService].
+/// A class which mocks [ProductRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDatabaseService extends _i1.Mock implements _i5.DatabaseService {
-  MockDatabaseService() {
+class MockProductRepository extends _i1.Mock implements _i2.ProductRepository {
+  MockProductRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i6.Future<_i2.Database> get database =>
+  _i3.Future<List<_i4.Product>> getAllProducts() =>
       (super.noSuchMethod(
-            Invocation.getter(#database),
-            returnValue: _i6.Future<_i2.Database>.value(
-              _FakeDatabase_0(this, Invocation.getter(#database)),
-            ),
+            Invocation.method(#getAllProducts, []),
+            returnValue: _i3.Future<List<_i4.Product>>.value(<_i4.Product>[]),
           )
-          as _i6.Future<_i2.Database>);
+          as _i3.Future<List<_i4.Product>>);
 
   @override
-  _i6.Future<int> addProduct(_i7.Product? product) =>
+  _i3.Future<void> addProduct(_i4.Product? product) =>
       (super.noSuchMethod(
             Invocation.method(#addProduct, [product]),
-            returnValue: _i6.Future<int>.value(0),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
           )
-          as _i6.Future<int>);
+          as _i3.Future<void>);
 
   @override
-  _i6.Future<List<_i7.Product>> getProducts() =>
-      (super.noSuchMethod(
-            Invocation.method(#getProducts, []),
-            returnValue: _i6.Future<List<_i7.Product>>.value(<_i7.Product>[]),
-          )
-          as _i6.Future<List<_i7.Product>>);
-
-  @override
-  _i6.Future<int> deleteProduct(int? id) =>
+  _i3.Future<void> deleteProduct(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteProduct, [id]),
-            returnValue: _i6.Future<int>.value(0),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
           )
-          as _i6.Future<int>);
-}
-
-/// A class which mocks [ApiService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockApiService extends _i1.Mock implements _i8.ApiService {
-  MockApiService() {
-    _i1.throwOnMissingStub(this);
-  }
+          as _i3.Future<void>);
 
   @override
-  _i6.Future<List<_i9.ShopLocation>> findShops(List<_i7.Product>? products) =>
-      (super.noSuchMethod(
-            Invocation.method(#findShops, [products]),
-            returnValue: _i6.Future<List<_i9.ShopLocation>>.value(
-              <_i9.ShopLocation>[],
-            ),
-          )
-          as _i6.Future<List<_i9.ShopLocation>>);
-}
-
-/// A class which mocks [LocationService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockLocationService extends _i1.Mock implements _i10.LocationService {
-  MockLocationService() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i3.NotificationService get notificationService =>
-      (super.noSuchMethod(
-            Invocation.getter(#notificationService),
-            returnValue: _FakeNotificationService_1(
-              this,
-              Invocation.getter(#notificationService),
-            ),
-          )
-          as _i3.NotificationService);
-
-  @override
-  List<_i9.ShopLocation> get monitoredShopLocations =>
-      (super.noSuchMethod(
-            Invocation.getter(#monitoredShopLocations),
-            returnValue: <_i9.ShopLocation>[],
-          )
-          as List<_i9.ShopLocation>);
-
-  @override
-  Set<String> get activeGeofenceIdentifiers =>
-      (super.noSuchMethod(
-            Invocation.getter(#activeGeofenceIdentifiers),
-            returnValue: <String>{},
-          )
-          as Set<String>);
-
-  @override
-  bool get hasListeners =>
-      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
-          as bool);
-
-  @override
-  _i6.Future<void> initialize({
-    void Function(_i11.NotificationResponse)? onNotificationTap,
+  _i3.Future<List<_i5.ShopLocation>> findShopsForProducts(
+    List<_i4.Product>? products, {
+    double? latitude,
+    double? longitude,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#initialize, [], {
-              #onNotificationTap: onNotificationTap,
-            }),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  _i6.Future<void> onGeofence(_i12.GeofenceEvent? event) =>
-      (super.noSuchMethod(
-            Invocation.method(#onGeofence, [event]),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  _i6.Future<void> addGeofences(List<_i9.ShopLocation>? locations) =>
-      (super.noSuchMethod(
-            Invocation.method(#addGeofences, [locations]),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  _i6.Future<void> clearGeoFences() =>
-      (super.noSuchMethod(
-            Invocation.method(#clearGeoFences, []),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  _i6.Future<_i12.Location?> getCurrentLocation() =>
-      (super.noSuchMethod(
-            Invocation.method(#getCurrentLocation, []),
-            returnValue: _i6.Future<_i12.Location?>.value(),
-          )
-          as _i6.Future<_i12.Location?>);
-
-  @override
-  void addListener(_i13.VoidCallback? listener) => super.noSuchMethod(
-    Invocation.method(#addListener, [listener]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void removeListener(_i13.VoidCallback? listener) => super.noSuchMethod(
-    Invocation.method(#removeListener, [listener]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void dispose() => super.noSuchMethod(
-    Invocation.method(#dispose, []),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void notifyListeners() => super.noSuchMethod(
-    Invocation.method(#notifyListeners, []),
-    returnValueForMissingStub: null,
-  );
-}
-
-/// A class which mocks [ProductProvider].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockProductProvider extends _i1.Mock implements _i14.ProductProvider {
-  MockProductProvider() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i4.UnmodifiableListView<_i7.Product> get products =>
-      (super.noSuchMethod(
-            Invocation.getter(#products),
-            returnValue: _FakeUnmodifiableListView_2<_i7.Product>(
-              this,
-              Invocation.getter(#products),
+            Invocation.method(
+              #findShopsForProducts,
+              [products],
+              {#latitude: latitude, #longitude: longitude},
+            ),
+            returnValue: _i3.Future<List<_i5.ShopLocation>>.value(
+              <_i5.ShopLocation>[],
             ),
           )
-          as _i4.UnmodifiableListView<_i7.Product>);
-
-  @override
-  _i4.UnmodifiableListView<_i9.ShopLocation> get shopLocations =>
-      (super.noSuchMethod(
-            Invocation.getter(#shopLocations),
-            returnValue: _FakeUnmodifiableListView_2<_i9.ShopLocation>(
-              this,
-              Invocation.getter(#shopLocations),
-            ),
-          )
-          as _i4.UnmodifiableListView<_i9.ShopLocation>);
-
-  @override
-  bool get isInitialized =>
-      (super.noSuchMethod(Invocation.getter(#isInitialized), returnValue: false)
-          as bool);
-
-  @override
-  bool get hasListeners =>
-      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
-          as bool);
-
-  @override
-  _i6.Future<void> fetchProducts() =>
-      (super.noSuchMethod(
-            Invocation.method(#fetchProducts, []),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  _i6.Future<void> addProduct(String? name) =>
-      (super.noSuchMethod(
-            Invocation.method(#addProduct, [name]),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  _i6.Future<void> deleteProduct(int? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteProduct, [id]),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  void addListener(_i13.VoidCallback? listener) => super.noSuchMethod(
-    Invocation.method(#addListener, [listener]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void removeListener(_i13.VoidCallback? listener) => super.noSuchMethod(
-    Invocation.method(#removeListener, [listener]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void dispose() => super.noSuchMethod(
-    Invocation.method(#dispose, []),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void notifyListeners() => super.noSuchMethod(
-    Invocation.method(#notifyListeners, []),
-    returnValueForMissingStub: null,
-  );
-}
-
-/// A class which mocks [NotificationService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockNotificationService extends _i1.Mock
-    implements _i3.NotificationService {
-  MockNotificationService() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i6.Future<void> initialize({
-    void Function(_i11.NotificationResponse)? onNotificationTap,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#initialize, [], {
-              #onNotificationTap: onNotificationTap,
-            }),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  _i6.Future<void> showNotification({
-    required String? title,
-    required String? body,
-    String? payload,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#showNotification, [], {
-              #title: title,
-              #body: body,
-              #payload: payload,
-            }),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
+          as _i3.Future<List<_i5.ShopLocation>>);
 }

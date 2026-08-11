@@ -1,0 +1,4 @@
+// Google Maps API key, restricted in Google Cloud Console to this app's
+// bundle identifier. Get one at
+// https://console.cloud.google.com/google/maps-apis/credentials
+MAPS_API_KEY = your-api-key-here

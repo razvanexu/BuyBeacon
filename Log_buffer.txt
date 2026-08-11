@@ -1,0 +1,684 @@
+Launching lib\main.dart on POCOPHONE F1 in debug mode...
+Running Gradle task 'assembleDebug'...
+[flutter_background_geolocation] Purging debug resources in release build
+[flutter_background_geolocation] Purging debug resources in release build
+[flutter_background_geolocation] Purging debug resources in release build
+√ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...
+I/flutter ( 4167): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(61)] Using the Impeller rendering backend (Vulkan).
+Debug service listening on ws://127.0.0.1:52845/E5nksqQ06Dw=/ws
+Syncing files to device POCOPHONE F1...
+[MyAppMain] [main] App starting...
+[GeofenceService] [GeofenceService] Instance created.
+[MyAppMain] [main] ShoppingOrchestrator created.
+[GeofenceService] [GeofenceService] Initializing GeofenceService and setting onGeofence listener.
+[MyAppMain] [main] GeofenceService initialized.
+[NotificationDecisionService] [NotificationDecisionService] Initializing...
+[MyAppMain] [main] GeofenceService initialized.
+[MyAppMain] [BuyBeaconApp] Build method called.
+[log] _handleStateChange called
+I/Choreographer( 4167): Skipped 153 frames!  The application may be doing too much work on its main thread.
+W/Looper  ( 4167): Slow Looper main: doFrame is 2562ms late because of 1 msg
+I/beacon.fronten( 4167): ProcessProfilingInfo new_methods=2976 is saved saved_to_disk=1 resolve_classes_delay=8000
+[NotificationService] Creating android notification channel...
+[NotificationService] [NotificationService] Initializing...
+[NotificationService] [NotificationService] FlutterLocalNotificationsPlugin initialized successfully.
+[NotificationService] NotificationService initialized.
+[MyAppMain] [main] NotificationService initialized.
+[LocationService] [LocationService] Initializing...
+[MyAppMain] [main] LocationService initialized.
+[MyAppMain] [main] Initialization complete. Running app...
+[MyAppMain] [main] Loading initial product data...
+D/TSLocationManager( 4167): [c.t.l.adapter.TSConfig e] ℹ️   Persist config, dirty: [debug, desiredAccuracy, distanceFilter, logLevel, notification, notification.title, notification.text, notification.smallIcon, notification.channelName, notification.channelId, startOnBoot, stopOnTerminate, stopTimeout]
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+[LocationService] [LocationService] BackgroundGeolocation.ready complete. State enabled: false
+I/TSLocationManager( 4167): [c.t.l.u.LocationAuthorization withBackgroundPermission] 
+I/TSLocationManager( 4167):   🔵  LocationAuthorization: Requesting Background permission
+[LocationService] [LocationService] BackgroundGeolocation.start() called and completed.
+I/Timeline( 4167): Timeline: Activity_launch_request time:190156601
+W/ActivityThread( 4167): handleWindowVisibility: no activity for token android.os.BinderProxy@77c0560
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.intentfilter.androidpermissions.PermissionsActivity@a91138d
+I/chatty  ( 4167): uid=10669(com.buy_beacon.frontend) identical 2 lines
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.intentfilter.androidpermissions.PermissionsActivity@a91138d
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.intentfilter.androidpermissions.PermissionsActivity@a91138d
+W/beacon.fronten( 4167): Accessing hidden method Landroid/view/View;->computeFitSystemWindows(Landroid/graphics/Rect;Landroid/graphics/Rect;)Z (greylist, reflection, allowed)
+W/beacon.fronten( 4167): Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (greylist, reflection, allowed)
+D/ProfileInstaller( 4167): Installing profile for com.buy_beacon.frontend
+[ShoppingOrchestrator] [ShoppingOrchestrator] _fetchProductsAndShops called.
+[log] [ShoppingOrchestrator] Emitting state in _emitState: hasConnectionError = false, isLoading = true
+[ShoppingOrchestrator] [ShoppingOrchestrator] Product list is empty. Clearing geofences.
+[GeofenceService] [GeofenceService] addGeofences called with 0 locations.
+[GeofenceService] [GeofenceService] _clearGeofences called.
+[MyAppMain] [main] Initial product data LOADED.
+[log] --- _handleStateChange ---
+[log] Received state: hasConnectionError = false
+[GeofenceService] [GeofenceService] Successfully removed all geofences from plugin.
+[GeofenceService] [GeofenceService] No locations to add as geofences. Clearing all geofences.
+[log] [ShoppingOrchestrator] Emitting state in _emitState: hasConnectionError = false, isLoading = false
+[log] [ShoppingOrchestrator] State BEFORE emit in FINALLY: hasConnectionError = false
+[log] [ShoppingOrchestrator] Emitting state in _emitState: hasConnectionError = false, isLoading = false
+[log] --- _handleStateChange ---
+[log] Received state: hasConnectionError = false
+[log] --- _handleStateChange ---
+[log] Received state: hasConnectionError = false
+[MyAppMain] [BuyBeaconApp] Build method called.
+D/TSLocationManager( 4167): [c.t.l.l.LifecycleManager onPause] ☯️  onPause
+D/TSBackgroundFetch( 4167): ☯️  onPause
+I/TSLocationManager( 4167): [c.t.l.u.LocationAuthorization$j onPermissionGranted] 
+I/TSLocationManager( 4167):   ✅  LocationAuthorization: Permission granted
+I/TSLocationManager( 4167): - Enable: false → true, trackingMode: 1
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+I/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager start] 
+I/TSLocationManager( 4167):   🎾  Start monitoring geofences
+D/TSLocationManager( 4167): [c.t.l.http.HttpService startMonitoringConnectivityChanges] 
+D/TSLocationManager( 4167):   🎾  Start monitoring connectivity changes
+D/TSLocationManager( 4167): [c.t.l.device.DeviceSettings startMonitoringPowerSaveChanges] 
+D/TSLocationManager( 4167):   🎾  Start monitoring powersave changes
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+I/TSLocationManager( 4167): [c.t.l.service.HeartbeatService stop] 
+I/TSLocationManager( 4167):   🔴  Stop heartbeat
+I/TSLocationManager( 4167): [c.t.l.s.ActivityRecognitionService start] 
+I/TSLocationManager( 4167):   🎾  Start motion-activity updates
+D/TSBackgroundFetch( 4167): ☯️  onResume
+D/TSLocationManager( 4167): [c.t.l.l.LifecycleManager onResume] ☯️  onResume
+I/TSLocationManager( 4167): [c.t.l.service.TrackingService changePace] 
+I/TSLocationManager( 4167):   🔵  setPace: false → false
+D/TSLocationManager( 4167): [c.t.l.a.TSLocationManagerActivity start] Action 'locationsettings' already pending <IGNORED>
+I/TSLocationManager( 4167): [c.t.l.p.TSProviderManager a] 
+I/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+I/TSLocationManager( 4167): ║ Location-provider change: true
+I/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+I/TSLocationManager( 4167): ╟─ GPS: true
+I/TSLocationManager( 4167): ╟─ Network: true
+I/TSLocationManager( 4167): ╟─ AP Mode: false
+I/TSLocationManager( 4167): [c.t.l.service.HeartbeatService stop] 
+I/TSLocationManager( 4167):   🔴  Stop heartbeat
+D/TSLocationManager( 4167): [c.t.l.http.HttpService a] 
+D/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+D/TSLocationManager( 4167): ║ 📶  Connectivity change: connected? true
+D/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+I/TSLocationManager( 4167): [c.t.l.service.TrackingService changePace] 
+I/TSLocationManager( 4167):   🔵  setPace: false → false
+W/TSLocationManager( 4167): [c.t.l.l.TSLocationManager onSingleLocationResult] 
+W/TSLocationManager( 4167):   ℹ️  Failed to find SingleLocationRequest.  Request ignored.
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] 
+I/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+I/TSLocationManager( 4167): ║ providerchange LocationResult: 2 (505184ms old)
+I/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+I/TSLocationManager( 4167): ╟─ 📍  Location[fused 44.463096,26.073161 hAcc=14 et=+3d13h27m53s718ms alt=138.70001220703125 vAcc=1 sAcc=2 bAcc=45 {Bundle[{}]}], time: 1755490082206
+D/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] Median accuracy: 14.38
+D/TSLocationManager( 4167): [c.t.l.u.LocationAuthorization withPermission] 
+D/TSLocationManager( 4167):   ℹ️  LocationAuthorization: Permission granted
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] 
+I/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+I/TSLocationManager( 4167): ║ motionchange LocationResult: 3 (505303ms old)
+I/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+I/TSLocationManager( 4167): ╟─ 📍  Location[fused 44.463096,26.073161 hAcc=14 et=+3d13h27m53s718ms alt=138.70001220703125 vAcc=1 sAcc=2 bAcc=45 {Bundle[{}]}], time: 1755490082206
+D/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] Median accuracy: 14.38
+D/TSLocationManager( 4167): [c.t.l.u.LocationAuthorization withPermission] 
+D/TSLocationManager( 4167):   ℹ️  LocationAuthorization: Permission granted
+I/Timeline( 4167): Timeline: Activity_launch_request time:190159013
+[LocationService] Location updated: 44.4630962, 26.0731614
+[LocationService] Location updated: 44.4630962, 26.0731614
+[MyAppMain] [BuyBeaconApp] Build method called.
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  start [LocationRequestService  startId: 1, eventCount: 1]
+I/TSLocationManager( 4167): [c.t.l.l.SingleLocationRequest startUpdatingLocation] 
+I/TSLocationManager( 4167):   🔵  [SingleLocationRequest start, action: 3, requestId: 2]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  start [LocationRequestService  startId: 2, eventCount: 2]
+W/ActivityThread( 4167): handleWindowVisibility: no activity for token android.os.BinderProxy@1a2c55a
+I/TSLocationManager( 4167): [c.t.l.l.SingleLocationRequest startUpdatingLocation] 
+I/TSLocationManager( 4167):   🔵  [SingleLocationRequest start, action: 1, requestId: 3]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 1, eventCount: 1, sticky: true]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 2, eventCount: 0, sticky: true]
+D/TSLocationManager( 4167): [c.t.l.a.TSLocationManagerActivity a] locationsettings
+D/TSLocationManager( 4167): [c.t.l.adapter.TSConfig translateDesiredAccuracy] translateDesiredAccuracy (true): -1
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.transistorsoft.locationmanager.activity.TSLocationManagerActivity@f42225f
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.transistorsoft.locationmanager.activity.TSLocationManagerActivity@f42225f
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.transistorsoft.locationmanager.activity.TSLocationManagerActivity@f42225f
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.transistorsoft.locationmanager.activity.TSLocationManagerActivity@f42225f
+D/ForceDarkHelper( 4167): updateByCheckExcludeList: pkg: com.buy_beacon.frontend activity: com.transistorsoft.locationmanager.activity.TSLocationManagerActivity@f42225f
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  3:2 [LocationRequestService  startId: 3, eventCount: 1]
+I/TSLocationManager( 4167): [c.t.l.s.LocationRequestService b] 
+I/TSLocationManager( 4167):   ℹ️  Location availability: false
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 3, eventCount: 0, sticky: true]
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+D/TSLocationManager( 4167): [c.t.l.http.HttpService a] 
+D/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+D/TSLocationManager( 4167): ║ 📶  Connectivity change: connected? true
+D/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+D/TSLocationManager( 4167): [c.t.l.a.TSLocationManagerActivity onDestroy] locationsettings
+V/MediaPlayer( 4167): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer( 4167): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+D/TSLocationManager( 4167): [c.t.l.http.HttpService a] 
+D/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+D/TSLocationManager( 4167): ║ 📶  Connectivity change: connected? true
+D/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+V/MediaPlayer( 4167): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer( 4167): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+W/Settings( 4167): Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  3:2 [LocationRequestService  startId: 4, eventCount: 1]
+I/TSLocationManager( 4167): [c.t.l.s.LocationRequestService b] 
+I/TSLocationManager( 4167):   ℹ️  Location availability: true
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 4, eventCount: 0, sticky: true]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  3:2 [LocationRequestService  startId: 5, eventCount: 1]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  1:3 [LocationRequestService  startId: 6, eventCount: 2]
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] 
+I/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+I/TSLocationManager( 4167): ║ providerchange LocationResult: 2 (1569ms old)
+I/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+I/TSLocationManager( 4167): ╟─ 📍  Location[fused 44.463082,26.073164 hAcc=14 et=+3d13h36m19s354ms alt=138.70001220703125 vAcc=1 sAcc=2 bAcc=45 {Bundle[{noGPSLocation=Location[fused 44.463082,26.073164 hAcc=14 et=+3d13h36m19s354ms alt=138.70001220703125 vAcc=1 sAcc=??? bAcc=??? {Bundle[mParcelledData.dataSize=456]}], requestId=2}]}], time: 1755490587841
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService b] 
+D/TSLocationManager( 4167):   🎾  STOP [LocationRequestService startId: 7, eventCount: 3]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 7, eventCount: 2, sticky: false]
+[LocationService] Location updated: 44.4630822, 26.0731644
+[MyAppMain] [BuyBeaconApp] Build method called.
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager onSingleLocationResult] 
+I/TSLocationManager( 4167):   🔵  Acquired providerchange position
+D/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] Median accuracy: 14.38
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 5, eventCount: 1, sticky: false]
+D/TSLocationManager( 4167): [c.t.l.l.TSLocationManager$c onLocation] 
+D/TSLocationManager( 4167):   ℹ️  Distance from last location: 5559348.0
+W/beacon.fronten( 4167): Long monitor contention with owner pool-1-thread-4 (4404) at void com.transistorsoft.locationmanager.location.TSLocationManager.onSingleLocationResult(com.transistorsoft.locationmanager.location.SingleLocationResult)(SourceFile:-1) waiters=0 in void com.transistorsoft.locationmanager.location.TSLocationManager.onSingleLocationResult(com.transistorsoft.locationmanager.location.SingleLocationResult) for 164ms
+D/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager startMonitoringStationaryRegion] 
+D/TSLocationManager( 4167):   🎾  Start monitoring stationary region (radius: 150.0m 44.4630822,26.0731644 hAcc=14.228)
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] 
+I/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+I/TSLocationManager( 4167): ║ motionchange LocationResult: 3 (1739ms old)
+I/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+I/TSLocationManager( 4167): ╟─ 📍  Location[fused 44.463082,26.073164 hAcc=14 et=+3d13h36m19s354ms alt=138.70001220703125 vAcc=1 sAcc=2 bAcc=45 {Bundle[{noGPSLocation=Location[fused 44.463082,26.073164 hAcc=14 et=+3d13h36m19s354ms alt=138.70001220703125 vAcc=1 sAcc=??? bAcc=??? {Bundle[mParcelledData.dataSize=456]}], requestId=3}]}], time: 1755490587841
+I/TSLocationManager( 4167): [c.t.l.d.s.SQLiteLocationDAO persist] 
+I/TSLocationManager( 4167):   ✅  INSERT: 759252f4-2881-4498-a5d2-e91808599535
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager onSingleLocationResult] 
+I/TSLocationManager( 4167):   🔵  Acquired motionchange position, isMoving: false
+D/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] Median accuracy: 14.304
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 6, eventCount: 0, sticky: false]
+I/TSLocationManager( 4167): [c.t.l.d.s.SQLiteLocationDAO persist] 
+I/TSLocationManager( 4167):   ✅  INSERT: 14787cf5-b6cc-4675-a8a2-418da3d8fa7f
+D/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager startMonitoringStationaryRegion] 
+D/TSLocationManager( 4167):   🎾  Start monitoring stationary region (radius: 150.0m 44.4630822,26.0731644 hAcc=14.228)
+[LocationService] Location updated: 44.4630822, 26.0731644
+[MyAppMain] [BuyBeaconApp] Build method called.
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService b] 
+D/TSLocationManager( 4167):   🎾  STOP [LocationRequestService startId: 8, eventCount: 1]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [LocationRequestService startId: 8, eventCount: 0, sticky: false]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  motionchange [TrackingService  startId: 1, eventCount: 1]
+I/TSLocationManager( 4167): [c.t.l.service.TrackingService k] 
+I/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+I/TSLocationManager( 4167): ║ TrackingService motionchange: false
+I/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [TrackingService startId: 1, eventCount: 0, sticky: false]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   🎾  start [ActivityRecognitionService  startId: 1, eventCount: 1]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService f] 
+D/TSLocationManager( 4167):   ⚙️︎  LocationRequestService.stopSelfResult(8): true
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService onDestroy] 
+D/TSLocationManager( 4167):   🔴  LocationRequestService stopped
+D/TSLocationManager( 4167): [c.t.l.s.ActivityRecognitionService a] 
+D/TSLocationManager( 4167):   🚘 ️DetectedActivity [type=STILL, confidence=100]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService a] 
+D/TSLocationManager( 4167):   ⚙️︎   FINISH [ActivityRecognitionService startId: 1, eventCount: 0, sticky: false]
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService f] 
+D/TSLocationManager( 4167):   ⚙️︎  TrackingService.stopSelfResult(1): true
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService onDestroy] 
+D/TSLocationManager( 4167):   🔴  TrackingService stopped
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService f] 
+D/TSLocationManager( 4167):   ⚙️︎  ActivityRecognitionService.stopSelfResult(1): true
+D/TSLocationManager( 4167): [c.t.l.service.AbstractService onDestroy] 
+D/TSLocationManager( 4167):   🔴  ActivityRecognitionService stopped
+V/MediaPlayer( 4167): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer( 4167): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+W/BpBinder( 4167): Slow Binder: BpBinder transact took 202 ms, interface=android.media.IAudioFlinger, code=36 oneway=false
+V/MediaPlayer( 4167): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer( 4167): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+W/MediaPlayer( 4167): mediaplayer went away with unhandled events
+I/AssistStructure( 4167): Flattened final assist data: 452 bytes, containing 1 windows, 3 views
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+I/chatty  ( 4167): uid=10669(com.buy_beacon.frontend) identical 2 lines
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+[HomeScreen] [1] _addProduct called.
+[HomeScreen] [2] Getting ProductProvider.
+[HomeScreen] [3] ProductProvider found. Calling provider.addProduct().
+[HomeScreen] [4] Clearing text controller.
+I/TextInputPlugin( 4167): Composing region changed by the framework. Restarting the input method.
+W/IInputConnectionWrapper( 4167): getExtractedText on inactive InputConnection
+[ShoppingOrchestrator] [ShoppingOrchestrator] _fetchProductsAndShops called.
+[log] [ShoppingOrchestrator] Emitting state in _emitState: hasConnectionError = false, isLoading = true
+[ShoppingOrchestrator] [ShoppingOrchestrator] Fetching shops for 1 products.
+[ApiService] Sending HTTP Request: POST http://192.168.0.180:8080/api/shops/find
+[ApiService]   Header: Content-type = application/json; charset=utf-8
+[ApiService]   Body: {"products":["lapte"]}
+[ApiService] Sending POST request to http://192.168.0.180:8080/api/shops/find with body: {"products":["lapte"]}
+[log] --- _handleStateChange ---
+[log] Received state: hasConnectionError = false
+W/IInputConnectionWrapper( 4167): getTextBeforeCursor on inactive InputConnection
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+E/SpannableStringBuilder( 4167): SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+[ApiService] Received HTTP Response:
+[ApiService]   Status Code: 200
+[ApiService]   Header: content-type = application/json
+[ApiService]   Header: date = Mon, 18 Aug 2025 04:16:53 GMT
+[ApiService]   Header: transfer-encoding = chunked
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4673735_26.2098046
+[ApiService]   Body: [{"storeName":"Ferma Animalelor","latitude":44.4673735,"longitude":26.2098046,"products":["lapte"]},{"storeName":"Milk Factory","latitude":44.46969989999999,"longitude":26.2116498,"products":["lapte"]},{"storeName":"Pebebe","latitude":44.3122892,"longitude":23.8362768,"products":["lapte"]},{"storeName":"Totul Despre Mame","latitude":44.4419782,"longitude":26.0866767,"products":["lapte"]},{"storeName":"VIP BEBE BUCURESTI","latitude":44.48618219999999,"longitude":26.092337,"products":["lapte"]},{"storeName":"Mega Image ION MIHALACHE","latitude":44.4603578,"longitude":26.0752886,"products":["lapte"]},{"storeName":"Mega Image Charles de Gaulle","latitude":44.464546,"longitude":26.08839,"products":["lapte"]},{"storeName":"Mega Image DOMENII","latitude":44.4654766,"longitude":26.0675209,"products":["lapte"]},{"storeName":"Mega Image EXPOZITIEI","latitude":44.4729829,"longitude":26.0587376,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4622547,"longitude":26.057332,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4590225,"longitude":26.0953255,"products":["lapte"]},{"storeName":"Shop & Go","latitude":44.4629232,"longitude":26.0712598,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4605476,"longitude":26.1000449,"products":["lapte"]},{"storeName":"Shop & Go (Mega Image)","latitude":44.4554565,"longitude":26.0796038,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4432143,"longitude":26.0978328,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4527655,"longitude":26.1030392,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4519411,"longitude":26.079431,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4780569,"longitude":26.071178,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4580031,"longitude":26.0784309,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4485144,"longitude":26.0765869,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4772752,"longitude":26.0446049,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4387899,"longitude":26.092871,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4611808,"longitude":26.0944463,"products":["lapte"]},{"storeName":"Mega Image Concept Store","latitude":44.4797126,"longitude":26.1025219,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.47653589999999,"longitude":26.0928652,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4447231,"longitude":26.0632957,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4329088,"longitude":26.0374591,"products":["lapte"]},{"storeName":"Carrefour Market","latitude":44.4822218,"longitude":26.0920884,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4377955,"longitude":26.1874567,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.5100291,"longitude":26.0884986,"products":["lapte"]},{"storeName":"Carrefour România","latitude":44.4795007,"longitude":26.1053527,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4389501,"longitude":25.9565081,"products":["lapte"]},{"storeName":"Freshful by eMag","latitude":44.4891758,"longitude":26.1251362,"products":["lapte"]},{"storeName":"All-Around Delivery & Takeaway","latitude":44.442394,"longitude":26.1331822,"products":["lapte"]},{"storeName":"INSPIRATION Store - VUSE glo VELO - Baneasa Shopping City","latitude":44.5059806,"longitude":26.0891783,"products":["lapte"]},{"storeName":"Headquarters Glovo Bucharest","latitude":44.4429069,"longitude":26.0818234,"products":["lapte"]},{"storeName":"Glovo Courier support headquarters","latitude":44.4507196,"longitude":26.0782356,"products":["lapte"]},{"storeName":"Glovo express","latitude":44.40985449999999,"longitude":26.1229745,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46434,"longitude":26.03812,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46002,"longitude":26.11262,"products":["lapte"]},{"storeName":"Lidl","latitude":44.45178,"longitude":26.04795,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46877,"longitude":26.10995,"products":["lapte"]},{"storeName":"Lidl","latitude":44.4881725,"longitude":26.0942193,"products":["lapte"]},{"storeName":"Lidl","latitude":44.42433,"longitude":26.0632499,"products":["lapte"]},{"storeName":"Lidl","latitude":44.41,"longitude":26.08035,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46953999999999,"longitude":26.05069,"products":["lapte"]},{"storeName":"Lidl Straulesti","latitude":44.49286,"longitude":26.06355,"products":["lapte"]},{"storeName":"Lidl","latitude":44.43594,"longitude":26.17379,"products":["lapte"]},{"storeName":"Lidl","latitude":44.41973000000001,"longitude":26.07614,"products":["lapte"]},{"storeName":"Lidl","latitude":44.43458,"longitude":26.04373,"products":["lapte"]},{"storeName":"Lidl","latitude":44.4111,"longitude":26.0073,"products":["lapte"]},{"storeName":"Lidl","latitude":44.38986999999999,"longitude":26.09048,"products":["lapte"]},{"storeName":"Lidl","latitude":44.445,"longitude":26.15681,"products":["lapte"]},{"storeName":"Lidl","latitude":44.39781000000001,"longitude":26.0435099,"products":["lapte"]},{"storeName":"Lidl","latitude":44.47035,"longitude":26.14163,"products":["lapte"]},{"storeName":"Lidl","latitude":44.42736,"longitude":26.03129,"products":["lapte"]},{"storeName":"Lidl","latitude":44.41404,"longitude":26.07521,"products":["lapte"]},{"storeName":"Lidl","latitude":44.43465,"longitude":25.99248,"products":["lapte"]},{"storeName":"Boiler @ The STUDIO","latitude":44.4692025,"longitude":26.0917337,"products":["lapte"]},{"storeName":"Boiler @ The CUBE","latitude":44.4527834,"longitude":26.0977963,"products":["lapte"]},{"storeName":"Boiler @ The SQUARE","latitude":44.4798462,"longitude":26.1044406,"products":["lapte"]},{"storeName":"Boiler Coffee Shop","latitude":44.4329361,"longitude":26.1387988,"products":["lapte"]},{"storeName":"Boiler x Guido","latitude":44.4491667,"longitude":26.0883333,"products":["lapte"]},{"storeName":"BOILER @ The Muse","latitude":44.4842271,"longitude":26.0735138,"products":["lapte"]},{"storeName":"Boiler @ Bazilescu","latitude":44.4848376,"longitude":26.0359372,"products":["lapte"]},{"storeName":"Boiler @ The ZOO","latitude":44.5160748,"longitude":26.1029636,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.41827319999999,"longitude":26.0720649,"products":["lapte"]},{"storeName":"Mega Mall","latitude":44.4418477,"longitude":26.1522755,"products":["lapte"]},{"storeName":"Veranda Mall","latitude":44.4522007,"longitude":26.1305735,"products":["lapte"]},{"storeName":"Ascend NetSolutions","latitude":44.4784082,"longitude":26.1013351,"products":["lapte"]},{"storeName":"Carrefour","latitude":46.93405320000001,"longitude":26.347513,"products":["lapte"]},{"storeName":"Regnet | Automatizează Afacerea Ta","latitude":44.4609342,"longitude":26.0942616,"products":["lapte"]}]
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.46969989999999_26.2116498
+[ApiService] Raw response body: [{"storeName":"Ferma Animalelor","latitude":44.4673735,"longitude":26.2098046,"products":["lapte"]},{"storeName":"Milk Factory","latitude":44.46969989999999,"longitude":26.2116498,"products":["lapte"]},{"storeName":"Pebebe","latitude":44.3122892,"longitude":23.8362768,"products":["lapte"]},{"storeName":"Totul Despre Mame","latitude":44.4419782,"longitude":26.0866767,"products":["lapte"]},{"storeName":"VIP BEBE BUCURESTI","latitude":44.48618219999999,"longitude":26.092337,"products":["lapte"]},{"storeName":"Mega Image ION MIHALACHE","latitude":44.4603578,"longitude":26.0752886,"products":["lapte"]},{"storeName":"Mega Image Charles de Gaulle","latitude":44.464546,"longitude":26.08839,"products":["lapte"]},{"storeName":"Mega Image DOMENII","latitude":44.4654766,"longitude":26.0675209,"products":["lapte"]},{"storeName":"Mega Image EXPOZITIEI","latitude":44.4729829,"longitude":26.0587376,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4622547,"longitude":26.057332,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4590225,"longitude":26.0953255,"products":["lapte"]},{"storeName":"Shop & Go","latitude":44.4629232,"longitude":26.0712598,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4605476,"longitude":26.1000449,"products":["lapte"]},{"storeName":"Shop & Go (Mega Image)","latitude":44.4554565,"longitude":26.0796038,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4432143,"longitude":26.0978328,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4527655,"longitude":26.1030392,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4519411,"longitude":26.079431,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4780569,"longitude":26.071178,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4580031,"longitude":26.0784309,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4485144,"longitude":26.0765869,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4772752,"longitude":26.0446049,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4387899,"longitude":26.092871,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.4611808,"longitude":26.0944463,"products":["lapte"]},{"storeName":"Mega Image Concept Store","latitude":44.4797126,"longitude":26.1025219,"products":["lapte"]},{"storeName":"Mega Image","latitude":44.47653589999999,"longitude":26.0928652,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4447231,"longitude":26.0632957,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4329088,"longitude":26.0374591,"products":["lapte"]},{"storeName":"Carrefour Market","latitude":44.4822218,"longitude":26.0920884,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4377955,"longitude":26.1874567,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.5100291,"longitude":26.0884986,"products":["lapte"]},{"storeName":"Carrefour România","latitude":44.4795007,"longitude":26.1053527,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.4389501,"longitude":25.9565081,"products":["lapte"]},{"storeName":"Freshful by eMag","latitude":44.4891758,"longitude":26.1251362,"products":["lapte"]},{"storeName":"All-Around Delivery & Takeaway","latitude":44.442394,"longitude":26.1331822,"products":["lapte"]},{"storeName":"INSPIRATION Store - VUSE glo VELO - Baneasa Shopping City","latitude":44.5059806,"longitude":26.0891783,"products":["lapte"]},{"storeName":"Headquarters Glovo Bucharest","latitude":44.4429069,"longitude":26.0818234,"products":["lapte"]},{"storeName":"Glovo Courier support headquarters","latitude":44.4507196,"longitude":26.0782356,"products":["lapte"]},{"storeName":"Glovo express","latitude":44.40985449999999,"longitude":26.1229745,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46434,"longitude":26.03812,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46002,"longitude":26.11262,"products":["lapte"]},{"storeName":"Lidl","latitude":44.45178,"longitude":26.04795,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46877,"longitude":26.10995,"products":["lapte"]},{"storeName":"Lidl","latitude":44.4881725,"longitude":26.0942193,"products":["lapte"]},{"storeName":"Lidl","latitude":44.42433,"longitude":26.0632499,"products":["lapte"]},{"storeName":"Lidl","latitude":44.41,"longitude":26.08035,"products":["lapte"]},{"storeName":"Lidl","latitude":44.46953999999999,"longitude":26.05069,"products":["lapte"]},{"storeName":"Lidl Straulesti","latitude":44.49286,"longitude":26.06355,"products":["lapte"]},{"storeName":"Lidl","latitude":44.43594,"longitude":26.17379,"products":["lapte"]},{"storeName":"Lidl","latitude":44.41973000000001,"longitude":26.07614,"products":["lapte"]},{"storeName":"Lidl","latitude":44.43458,"longitude":26.04373,"products":["lapte"]},{"storeName":"Lidl","latitude":44.4111,"longitude":26.0073,"products":["lapte"]},{"storeName":"Lidl","latitude":44.38986999999999,"longitude":26.09048,"products":["lapte"]},{"storeName":"Lidl","latitude":44.445,"longitude":26.15681,"products":["lapte"]},{"storeName":"Lidl","latitude":44.39781000000001,"longitude":26.0435099,"products":["lapte"]},{"storeName":"Lidl","latitude":44.47035,"longitude":26.14163,"products":["lapte"]},{"storeName":"Lidl","latitude":44.42736,"longitude":26.03129,"products":["lapte"]},{"storeName":"Lidl","latitude":44.41404,"longitude":26.07521,"products":["lapte"]},{"storeName":"Lidl","latitude":44.43465,"longitude":25.99248,"products":["lapte"]},{"storeName":"Boiler @ The STUDIO","latitude":44.4692025,"longitude":26.0917337,"products":["lapte"]},{"storeName":"Boiler @ The CUBE","latitude":44.4527834,"longitude":26.0977963,"products":["lapte"]},{"storeName":"Boiler @ The SQUARE","latitude":44.4798462,"longitude":26.1044406,"products":["lapte"]},{"storeName":"Boiler Coffee Shop","latitude":44.4329361,"longitude":26.1387988,"products":["lapte"]},{"storeName":"Boiler x Guido","latitude":44.4491667,"longitude":26.0883333,"products":["lapte"]},{"storeName":"BOILER @ The Muse","latitude":44.4842271,"longitude":26.0735138,"products":["lapte"]},{"storeName":"Boiler @ Bazilescu","latitude":44.4848376,"longitude":26.0359372,"products":["lapte"]},{"storeName":"Boiler @ The ZOO","latitude":44.5160748,"longitude":26.1029636,"products":["lapte"]},{"storeName":"Carrefour","latitude":44.41827319999999,"longitude":26.0720649,"products":["lapte"]},{"storeName":"Mega Mall","latitude":44.4418477,"longitude":26.1522755,"products":["lapte"]},{"storeName":"Veranda Mall","latitude":44.4522007,"longitude":26.1305735,"products":["lapte"]},{"storeName":"Ascend NetSolutions","latitude":44.4784082,"longitude":26.1013351,"products":["lapte"]},{"storeName":"Carrefour","latitude":46.93405320000001,"longitude":26.347513,"products":["lapte"]},{"storeName":"Regnet | Automatizează Afacerea Ta","latitude":44.4609342,"longitude":26.0942616,"products":["lapte"]}]
+[ApiService] Received successful response with 72 locations.
+[ApiService] Successfully parsed 72 locations.
+[ShoppingOrchestrator] [ShoppingOrchestrator] Fetched 72 shop locations. Now adding geofences.
+[GeofenceService] [GeofenceService] addGeofences called with 72 locations.
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.3122892_23.8362768
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4673735_26.2098046,Lat=44.4673735, Lon=26.2098046,Name=Ferma Animalelor
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4673735_26.2098046
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4419782_26.0866767
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.46969989999999_26.2116498,Lat=44.46969989999999, Lon=26.2116498,Name=Milk Factory
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.46969989999999_26.2116498
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.3122892_23.8362768,Lat=44.3122892, Lon=23.8362768,Name=Pebebe
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.3122892_23.8362768
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.48618219999999_26.092337
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4419782_26.0866767,Lat=44.4419782, Lon=26.0866767,Name=Totul Despre Mame
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4419782_26.0866767
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.48618219999999_26.092337,Lat=44.48618219999999, Lon=26.092337,Name=VIP BEBE BUCURESTI
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.48618219999999_26.092337
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4603578_26.0752886
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4603578_26.0752886,Lat=44.4603578, Lon=26.0752886,Name=Mega Image ION MIHALACHE
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4603578_26.0752886
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.464546_26.08839
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.464546_26.08839,Lat=44.464546, Lon=26.08839,Name=Mega Image Charles de Gaulle
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.464546_26.08839
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4654766_26.0675209
+[GeofenceService] I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+[GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4654766_26.0675209,Lat=44.4654766, Lon=26.0675209,Name=Mega Image DOMENII
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4654766_26.0675209
+I/TSLocationManager( 4167):   ✅  shop_44.4729829_26.0587376
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4729829_26.0587376,Lat=44.4729829, Lon=26.0587376,Name=Mega Image EXPOZITIEI
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4729829_26.0587376
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4622547_26.057332
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4622547_26.057332,Lat=44.4622547, Lon=26.057332,Name=Mega Image
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4590225_26.0953255
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4622547_26.057332
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4590225_26.0953255,Lat=44.4590225, Lon=26.0953255,Name=Mega Image
+[GeofenceService] I/TSLocationManager( 4167):   ✅  shop_44.4629232_26.0712598
+[GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4590225_26.0953255
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4605476_26.1000449
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4629232_26.0712598,Lat=44.4629232, Lon=26.0712598,Name=Shop & Go
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4629232_26.0712598
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4605476_26.1000449,Lat=44.4605476, Lon=26.1000449,Name=Mega Image
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4554565_26.0796038
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4605476_26.1000449
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4432143_26.0978328
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4554565_26.0796038,Lat=44.4554565, Lon=26.0796038,Name=Shop & Go (Mega Image)
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4554565_26.0796038
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4527655_26.1030392
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4432143_26.0978328,Lat=44.4432143, Lon=26.0978328,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4432143_26.0978328
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4519411_26.079431
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4527655_26.1030392,Lat=44.4527655, Lon=26.1030392,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4527655_26.1030392
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4519411_26.079431,Lat=44.4519411, Lon=26.079431,Name=Mega Image
+[GeofenceService] I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+[GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4519411_26.079431
+I/TSLocationManager( 4167):   ✅  shop_44.4780569_26.071178
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4780569_26.071178,Lat=44.4780569, Lon=26.071178,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4780569_26.071178
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4580031_26.0784309
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4580031_26.0784309,Lat=44.4580031, Lon=26.0784309,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4580031_26.0784309
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4485144_26.0765869
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4772752_26.0446049
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4485144_26.0765869,Lat=44.4485144, Lon=26.0765869,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4485144_26.0765869
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4387899_26.092871
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4772752_26.0446049,Lat=44.4772752, Lon=26.0446049,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4772752_26.0446049
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4387899_26.092871,Lat=44.4387899, Lon=26.092871,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4387899_26.092871
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4611808_26.0944463
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4797126_26.1025219
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4611808_26.0944463,Lat=44.4611808, Lon=26.0944463,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4611808_26.0944463
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.47653589999999_26.0928652
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4797126_26.1025219,Lat=44.4797126, Lon=26.1025219,Name=Mega Image Concept Store
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4797126_26.1025219
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4447231_26.0632957
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.47653589999999_26.0928652,Lat=44.47653589999999, Lon=26.0928652,Name=Mega Image
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.47653589999999_26.0928652
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4329088_26.0374591
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4447231_26.0632957,Lat=44.4447231, Lon=26.0632957,Name=Carrefour
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4447231_26.0632957
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4822218_26.0920884
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4329088_26.0374591,Lat=44.4329088, Lon=26.0374591,Name=Carrefour
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4329088_26.0374591
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4377955_26.1874567
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4822218_26.0920884,Lat=44.4822218, Lon=26.0920884,Name=Carrefour Market
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4822218_26.0920884
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4377955_26.1874567,Lat=44.4377955, Lon=26.1874567,Name=Carrefour
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4377955_26.1874567
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.5100291_26.0884986
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.5100291_26.0884986,Lat=44.5100291, Lon=26.0884986,Name=Carrefour
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.5100291_26.0884986
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4795007_26.1053527
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4389501_25.9565081
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4795007_26.1053527,Lat=44.4795007, Lon=26.1053527,Name=Carrefour România
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4795007_26.1053527
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4891758_26.1251362
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4389501_25.9565081,Lat=44.4389501, Lon=25.9565081,Name=Carrefour
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4389501_25.9565081
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.442394_26.1331822
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4891758_26.1251362,Lat=44.4891758, Lon=26.1251362,Name=Freshful by eMag
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4891758_26.1251362
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.5059806_26.0891783
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.442394_26.1331822,Lat=44.442394, Lon=26.1331822,Name=All-Around Delivery & Takeaway
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.442394_26.1331822
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4429069_26.0818234
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.5059806_26.0891783,Lat=44.5059806, Lon=26.0891783,Name=INSPIRATION Store - VUSE glo VELO - Baneasa Shopping City
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.5059806_26.0891783
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4507196_26.0782356
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4429069_26.0818234,Lat=44.4429069, Lon=26.0818234,Name=Headquarters Glovo Bucharest
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4429069_26.0818234
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.40985449999999_26.1229745
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4507196_26.0782356,Lat=44.4507196, Lon=26.0782356,Name=Glovo Courier support headquarters
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4507196_26.0782356
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.46434_26.03812
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.40985449999999_26.1229745,Lat=44.40985449999999, Lon=26.1229745,Name=Glovo express
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.40985449999999_26.1229745
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.46434_26.03812,Lat=44.46434, Lon=26.03812,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.46002_26.11262
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.46434_26.03812
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.46002_26.11262,Lat=44.46002, Lon=26.11262,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.45178_26.04795
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.46002_26.11262
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.45178_26.04795,Lat=44.45178, Lon=26.04795,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.45178_26.04795
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.46877_26.10995
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.46877_26.10995,Lat=44.46877, Lon=26.10995,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.46877_26.10995
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4881725_26.0942193
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4881725_26.0942193,Lat=44.4881725, Lon=26.0942193,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.42433_26.0632499
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4881725_26.0942193
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.42433_26.0632499,Lat=44.42433, Lon=26.0632499,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.42433_26.0632499
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.41_26.08035
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.41_26.08035,Lat=44.41, Lon=26.08035,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.41_26.08035
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.46953999999999_26.05069
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.49286_26.06355
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.46953999999999_26.05069,Lat=44.46953999999999, Lon=26.05069,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.46953999999999_26.05069
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.49286_26.06355,Lat=44.49286, Lon=26.06355,Name=Lidl Straulesti
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.43594_26.17379
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.49286_26.06355
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.43594_26.17379,Lat=44.43594, Lon=26.17379,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.43594_26.17379
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.41973000000001_26.07614
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.43458_26.04373
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.41973000000001_26.07614,Lat=44.41973000000001, Lon=26.07614,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.41973000000001_26.07614
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.43458_26.04373,Lat=44.43458, Lon=26.04373,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4111_26.0073
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.43458_26.04373
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4111_26.0073,Lat=44.4111, Lon=26.0073,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4111_26.0073
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.38986999999999_26.09048
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.445_26.15681
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.38986999999999_26.09048,Lat=44.38986999999999, Lon=26.09048,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.38986999999999_26.09048
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.445_26.15681,Lat=44.445, Lon=26.15681,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.39781000000001_26.0435099
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.445_26.15681
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.47035_26.14163
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.39781000000001_26.0435099,Lat=44.39781000000001, Lon=26.0435099,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.39781000000001_26.0435099
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.47035_26.14163,Lat=44.47035, Lon=26.14163,Name=Lidl
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.47035_26.14163
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.42736_26.03129,Lat=44.42736, Lon=26.03129,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.42736_26.03129
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.41404_26.07521
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.42736_26.03129
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.41404_26.07521,Lat=44.41404, Lon=26.07521,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.43465_25.99248
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.41404_26.07521
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.43465_25.99248,Lat=44.43465, Lon=25.99248,Name=Lidl
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4692025_26.0917337
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.43465_25.99248
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4527834_26.0977963
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4798462_26.1044406
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4692025_26.0917337,Lat=44.4692025, Lon=26.0917337,Name=Boiler @ The STUDIO
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4692025_26.0917337
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4527834_26.0977963,Lat=44.4527834, Lon=26.0977963,Name=Boiler @ The CUBE
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4527834_26.0977963
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4329361_26.1387988
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4798462_26.1044406,Lat=44.4798462, Lon=26.1044406,Name=Boiler @ The SQUARE
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4798462_26.1044406
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4491667_26.0883333
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4329361_26.1387988,Lat=44.4329361, Lon=26.1387988,Name=Boiler Coffee Shop
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4329361_26.1387988
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4842271_26.0735138
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4491667_26.0883333,Lat=44.4491667, Lon=26.0883333,Name=Boiler x Guido
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4491667_26.0883333
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4848376_26.0359372
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4842271_26.0735138,Lat=44.4842271, Lon=26.0735138,Name=BOILER @ The Muse
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4842271_26.0735138
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.5160748_26.1029636
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4848376_26.0359372,Lat=44.4848376, Lon=26.0359372,Name=Boiler @ Bazilescu
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4848376_26.0359372
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.41827319999999_26.0720649
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4418477_26.1522755
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.5160748_26.1029636,Lat=44.5160748, Lon=26.1029636,Name=Boiler @ The ZOO
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.5160748_26.1029636
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4522007_26.1305735
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.41827319999999_26.0720649,Lat=44.41827319999999, Lon=26.0720649,Name=Carrefour
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.41827319999999_26.0720649
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4784082_26.1013351
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4418477_26.1522755,Lat=44.4418477, Lon=26.1522755,Name=Mega Mall
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4418477_26.1522755
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_46.93405320000001_26.347513
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4522007_26.1305735,Lat=44.4522007, Lon=26.1305735,Name=Veranda Mall
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4522007_26.1305735
+I/TSLocationManager( 4167): [c.t.l.data.sqlite.GeofenceDAO create] 
+I/TSLocationManager( 4167):   ✅  shop_44.4609342_26.0942616
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4784082_26.1013351,Lat=44.4784082, Lon=26.1013351,Name=Ascend NetSolutions
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4784082_26.1013351
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_46.93405320000001_26.347513,Lat=46.93405320000001, Lon=26.347513,Name=Carrefour
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_46.93405320000001_26.347513
+[GeofenceService] [GeofenceService] Preparing to ADD or UPDATE geofence:ID=shop_44.4609342_26.0942616,Lat=44.4609342, Lon=26.0942616,Name=Regnet | Automatizează Afacerea Ta
+[GeofenceService] [GeofenceService] Successfully ADDED new geofence to plugin: shop_44.4609342_26.0942616
+[GeofenceService] [GeofenceService] Finished adding geofences. Total in local cache: 72
+[GeofenceService] [GeofenceService] Finished geofence diffing. Total in local cache: 72
+[LocationService] [LocationService] getCurrentLocation() called.
+[MyAppMain] [BuyBeaconApp] Build method called.
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] 
+I/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+I/TSLocationManager( 4167): ║ getCurrentPosition LocationResult: 4 (21170ms old)
+I/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+I/TSLocationManager( 4167): ╟─ 📍  Location[fused 44.463120,26.073175 hAcc=13 et=+3d13h36m24s318ms alt=138.70001220703125 vel=0.49661455 bear=11.539643 vAcc=1 sAcc=2 bAcc=45 {Bundle[{}]}], time: 1755490592805
+D/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager setLocation] isMoving: false | stateChanged: false | timerExpired: true | elapsed: -1 | d: 4.2531576
+I/TSLocationManager( 4167): [c.t.l.l.TSLocationManager onSingleLocationResult] 
+I/TSLocationManager( 4167):   🔵  Acquired current position
+D/TSLocationManager( 4167): [c.t.l.l.TSLocationManager a] Median accuracy: 14.38
+I/TSLocationManager( 4167): [c.t.l.d.s.SQLiteLocationDAO persist] 
+I/TSLocationManager( 4167):   ✅  INSERT: 5ae21cdb-8e84-4493-bc32-3a15d5e99af3
+[LocationService] Location updated: 44.4631197, 26.0731751
+[LocationService] Current location: 44.4631197, 26.0731751
+[LocationService] Location updated: 44.4631197, 26.0731751
+[ShoppingOrchestrator] [ShoppingOrchestrator] Finished calling addGeofences.
+[log] [ShoppingOrchestrator] State BEFORE emit in FINALLY: hasConnectionError = false
+[log] [ShoppingOrchestrator] Emitting state in _emitState: hasConnectionError = false, isLoading = false
+[log] --- _handleStateChange ---
+[log] Received state: hasConnectionError = false
+[MyAppMain] [BuyBeaconApp] Build method called.
+D/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager$d run] evaluation buffer timer elapsed
+D/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager$e a] ℹ️  GeofencingClient addGeofences SUCCESS
+D/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager d] ℹ️  Persist monitored geofences: [shop_44.4673735_26.2098046, shop_44.46969989999999_26.2116498, shop_44.3122892_23.8362768, shop_44.4419782_26.0866767, shop_44.48618219999999_26.092337, shop_44.4603578_26.0752886, shop_44.464546_26.08839, shop_44.4654766_26.0675209, shop_44.4729829_26.0587376, shop_44.4622547_26.057332, shop_44.4590225_26.0953255, shop_44.4629232_26.0712598, shop_44.4605476_26.1000449, shop_44.4554565_26.0796038, shop_44.4432143_26.0978328, shop_44.4527655_26.1030392, shop_44.4519411_26.079431, shop_44.4780569_26.071178, shop_44.4580031_26.0784309, shop_44.4485144_26.0765869, shop_44.4772752_26.0446049, shop_44.4387899_26.092871, shop_44.4611808_26.0944463, shop_44.4797126_26.1025219, shop_44.47653589999999_26.0928652, shop_44.4447231_26.0632957, shop_44.4329088_26.0374591, shop_44.4822218_26.0920884, shop_44.4377955_26.1874567, shop_44.5100291_26.0884986, shop_44.4795007_26.1053527, shop_44.4389501_25.9565081, shop_44.4891758_26.1251362, shop_44.442394_26.1331822, shop_44.5059806_26.0891783, shop_44.4429069_26.0818234, shop_44.4507196_26.0782356, shop_44.40985449999999_26.1229745, shop_44.46434_26.03812, shop_44.46002_26.11262, shop_44.45178_26.04795, shop_44.46877_26.10995, shop_44.4881725_26.0942193, shop_44.42433_26.0632499, shop_44.41_26.08035, shop_44.46953999999999_26.05069, shop_44.49286_26.06355, shop_44.43594_26.17379, shop_44.41973000000001_26.07614, shop_44.43458_26.04373, shop_44.4111_26.0073, shop_44.38986999999999_26.09048, shop_44.445_26.15681, shop_44.39781000000001_26.0435099, shop_44.47035_26.14163, shop_44.42736_26.03129, shop_44.41404_26.07521, shop_44.43465_25.99248, shop_44.4692025_26.0917337, shop_44.4527834_26.0977963, shop_44.4798462_26.1044406, shop_44.4329361_26.1387988, shop_44.4491667_26.0883333, shop_44.4842271_26.0735138, shop_44.4848376_26.0359372, shop_44.5160748_26.1029636, shop_44.41827319999999_26.0720649, shop_44.4418477_26.1522755, shop_44.4522007_26.1305735, shop_44.4784082_26.1013351, shop_46.93405320000001_26.347513, shop_44.4609342_26.0942616]
+D/TSLocationManager( 4167): [c.t.l.g.TSGeofenceManager$e a] 
+D/TSLocationManager( 4167): ╔═════════════════════════════════════════════
+D/TSLocationManager( 4167): ║ TSGeofenceManager monitoring 72/72
+D/TSLocationManager( 4167): ╠═════════════════════════════════════════════
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4673735_26.2098046
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.46969989999999_26.2116498
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.3122892_23.8362768
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4419782_26.0866767
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.48618219999999_26.092337
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4603578_26.0752886
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.464546_26.08839
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4654766_26.0675209
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4729829_26.0587376
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4622547_26.057332
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4590225_26.0953255
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4629232_26.0712598
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4605476_26.1000449
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4554565_26.0796038
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4432143_26.0978328
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4527655_26.1030392
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4519411_26.079431
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4780569_26.071178
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4580031_26.0784309
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4485144_26.0765869
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4772752_26.0446049
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4387899_26.092871
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4611808_26.0944463
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4797126_26.1025219
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.47653589999999_26.0928652
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4447231_26.0632957
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4329088_26.0374591
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4822218_26.0920884
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4377955_26.1874567
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.5100291_26.0884986
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4795007_26.1053527
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4389501_25.9565081
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4891758_26.1251362
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.442394_26.1331822
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.5059806_26.0891783
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4429069_26.0818234
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4507196_26.0782356
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.40985449999999_26.1229745
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.46434_26.03812
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.46002_26.11262
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.45178_26.04795
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.46877_26.10995
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4881725_26.0942193
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.42433_26.0632499
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.41_26.08035
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.46953999999999_26.05069
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.49286_26.06355
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.43594_26.17379
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.41973000000001_26.07614
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.43458_26.04373
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4111_26.0073
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.38986999999999_26.09048
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.445_26.15681
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.39781000000001_26.0435099
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.47035_26.14163
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.42736_26.03129
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.41404_26.07521
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.43465_25.99248
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4692025_26.0917337
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4527834_26.0977963
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4798462_26.1044406
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4329361_26.1387988
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4491667_26.0883333
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4842271_26.0735138
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4848376_26.0359372
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.5160748_26.1029636
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.41827319999999_26.0720649
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4418477_26.1522755
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4522007_26.1305735
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4784082_26.1013351
+D/TSLocationManager( 4167): ╟─ 🎾  shop_46.93405320000001_26.347513
+D/TSLocationManager( 4167): ╟─ 🎾  shop_44.4609342_26.0942616
+D/TSLocationManager( 4167): ╚═════════════════════════════════════════════
+V/MediaPlayer( 4167): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer( 4167): cleanDrmObj: mDrmObj=null mDrmSessionId=null
