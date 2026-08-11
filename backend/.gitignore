@@ -1,5 +1,6 @@
 HELP.md
 target/
+.env
 src/main/resources/application-local.properties
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -13,6 +14,7 @@ src/main/resources/application-local.properties
 .settings
 .springBeans
 .sts4-cache
+
 
 ### IntelliJ IDEA ###
 .idea

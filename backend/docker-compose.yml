@@ -1,0 +1,19 @@
+services:
+  selenium:
+    image: selenium/standalone-chrome:latest
+    shm_size: 1gb
+    environment:
+      - SE_NODE_MAX_SESSIONS=1
+    restart: unless-stopped
+
+  backend:
+    build: .
+    ports:
+      - "8090:8080"
+    environment:
+      - SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - selenium
+    restart: unless-stopped
