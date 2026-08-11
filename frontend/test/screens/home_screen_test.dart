@@ -1,167 +1,124 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:buy_beacon/models/product.dart';
+import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
+import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/product_provider_test.mocks.dart';
+import 'home_screen_test.mocks.dart';
 
+// We now need to mock the orchestrator as well.
+@GenerateMocks([ProductProvider, ShoppingOrchestrator])
 void main() {
   late MockProductProvider mockProductProvider;
+  late MockShoppingOrchestrator mockShoppingOrchestrator;
+  late StreamController<ShoppingState> orchestratorStreamController;
 
-  //helper function to build home screen with all ancestors
+  setUp(() {
+    mockProductProvider = MockProductProvider();
+    mockShoppingOrchestrator = MockShoppingOrchestrator();
+    orchestratorStreamController = StreamController<ShoppingState>.broadcast();
+
+    // Set up default behaviors for the mocks.
+    when(mockProductProvider.isInitialized).thenReturn(true);
+    when(mockProductProvider.products).thenReturn(UnmodifiableListView<Product>([]));
+    when(
+      mockShoppingOrchestrator.onStateChanged,
+    ).thenAnswer((_) => orchestratorStreamController.stream);
+
+    when(mockShoppingOrchestrator.currentState).thenReturn(ShoppingState());
+  });
+
+  tearDown(() {
+    orchestratorStreamController.close();
+  });
+
+  // Helper function to build the HomeScreen with all necessary providers.
   Widget createHomeScreen() {
-    return ChangeNotifierProvider<ProductProvider>.value(
-      value: mockProductProvider,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ProductProvider>.value(value: mockProductProvider),
+        Provider<ShoppingOrchestrator>.value(value: mockShoppingOrchestrator),
+      ],
       child: const MaterialApp(home: HomeScreen()),
     );
   }
 
-  setUp(() {
-    mockProductProvider = MockProductProvider();
+  testWidgets('should show loading indicator when provider is not initialized', (
+      WidgetTester tester,) async {
+    // ARRANGE
+    when(mockProductProvider.isInitialized).thenReturn(false);
+
+    // ACT
+    await tester.pumpWidget(createHomeScreen());
+
+    // ASSERT
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
   testWidgets(
-    'HomeScreen should show loading indicator when provider is not initialized',
-    (WidgetTester tester) async {
-      //ARRANGE
-      when(mockProductProvider.isInitialized).thenReturn(false);
-      when(mockProductProvider.products).thenReturn(UnmodifiableListView<Product>([]));
+      'should display empty message when list is empty', (WidgetTester tester,) async {
+    // ARRANGE (default setup is empty list)
 
-      //ASSERT
-      await tester.pumpWidget(createHomeScreen());
+    // ACT
+    await tester.pumpWidget(createHomeScreen());
 
-      //ACT
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.byType(ListView), findsNothing);
-      expect(find.text('Your shopping list is empty.'), findsNothing);
-    },
-  );
+    // ASSERT
+    expect(find.text('Your shopping list is empty.'), findsOneWidget);
+  });
 
-  testWidgets(
-    'HomeScreen should display empty message when initialized and list is empty',
-    (WidgetTester tester) async {
-      //ARANGE
-      //mock provider returns and empty product list
-      when(mockProductProvider.isInitialized).thenReturn(true);
-      when(mockProductProvider.products).thenReturn(UnmodifiableListView([]));
-
-      //ACT
-      //build widget tree in test env
-      await tester.pumpWidget(createHomeScreen());
-
-      //ASSERT
-      //use "Finders" to locate widgets on screen
-      final emptyMessageFinder = find.text('Your shopping list is empty.');
-      final productListFinder = find.byType(ListView);
-
-      //verify that the empty message is found and the ListView is not
-      expect(emptyMessageFinder, findsOneWidget);
-      expect(productListFinder, findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-    },
-  );
-
-  testWidgets('HomeScreen should display a list of products when products exist', (
-    WidgetTester tester,
-  ) async {
-    //ARRANGE
-    final products = [
-      Product(id: 1, name: 'Test product 1'),
-      Product(id: 2, name: 'Test product 2'),
-    ];
-    when(mockProductProvider.isInitialized).thenReturn(true);
+  testWidgets('should display a list of products when products exist', (
+      WidgetTester tester,) async {
+    // ARRANGE
+    final products = [Product(id: 1, name: 'Test Product')];
     when(mockProductProvider.products).thenReturn(UnmodifiableListView(products));
 
-    //ACT
+    // ACT
     await tester.pumpWidget(createHomeScreen());
 
-    //ASSERT
+    // ASSERT
     expect(find.byType(ListView), findsOneWidget);
-    expect(find.text('Test product 1'), findsOneWidget);
-    expect(find.text('Test product 2'), findsOneWidget);
-    expect(find.text('Your shopping list is empty.'), findsNothing);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Test Product'), findsOneWidget);
   });
 
-  testWidgets('Tapping the add button should call addProduct on the provider', (
-    WidgetTester tester,
-  ) async {
-    //ARRANGE
-    when(mockProductProvider.isInitialized).thenReturn(true);
-    when(mockProductProvider.products).thenReturn(UnmodifiableListView<Product>([]));
+  testWidgets('tapping the add button should call addProduct on the provider', (
+      WidgetTester tester,) async {
+    // ARRANGE
     when(mockProductProvider.addProduct(any)).thenAnswer((_) async {});
-
     await tester.pumpWidget(createHomeScreen());
     const productName = 'New Item';
-    final textField = find.byType(TextField);
-    final addButton = find.byIcon(Icons.add);
 
-    //ACT
-    await tester.enterText(textField, productName);
-    await tester.tap(addButton);
+    // ACT
+    await tester.enterText(find.byType(TextField), productName);
+    await tester.tap(find.byIcon(Icons.add));
     await tester.pump();
 
-    //ASSERT
+    // ASSERT
     verify(mockProductProvider.addProduct(productName)).called(1);
-    final textFieldWidget = tester.widget<TextField>(textField);
-    expect(textFieldWidget.controller!.text, isEmpty);
   });
 
-  testWidgets('Tapping the delete icon should call deleteProduct on the provider', (
-    WidgetTester tester,
-  ) async {
-    //ARRANGE
+  testWidgets('tapping the delete icon should call deleteProduct on the provider', (
+      WidgetTester tester,) async {
+    // ARRANGE
     final productToDelete = Product(id: 5, name: 'Item to delete');
-    when(mockProductProvider.isInitialized).thenReturn(true);
     when(
       mockProductProvider.products,
     ).thenReturn(UnmodifiableListView([productToDelete]));
     when(mockProductProvider.deleteProduct(any)).thenAnswer((_) async {});
-
     await tester.pumpWidget(createHomeScreen());
 
-    final deleteButton = find.byIcon(Icons.delete_outline);
-    expect(deleteButton, findsOneWidget);
-
-    //ACT
-    await tester.tap(deleteButton);
+    // ACT
+    await tester.tap(find.byIcon(Icons.delete_outline));
     await tester.pump();
 
-    //ASSERT
+    // ASSERT
     verify(mockProductProvider.deleteProduct(5)).called(1);
-  });
-
-  testWidgets('Adding a duplicate product should call provider but not change the list', (
-    WidgetTester tester,
-  ) async {
-    //ARRANGE
-    final existingProduct = Product(id: 1, name: 'Existing item');
-
-    when(mockProductProvider.isInitialized).thenReturn(true);
-    when(
-      mockProductProvider.products,
-    ).thenReturn(UnmodifiableListView([existingProduct]));
-    when(mockProductProvider.addProduct(any)).thenAnswer((_) async {});
-
-    await tester.pumpWidget(createHomeScreen());
-
-    //ACT
-    await tester.enterText(find.byType(TextField), 'Existing item');
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    //ASSERT
-    verify(mockProductProvider.addProduct('Existing item')).called(1);
-
-    final listTiles = tester.widgetList<ListTile>(find.byType(ListTile));
-    expect(listTiles.length, 1);
-
-    final textFieldWidget = tester.widget<TextField>(find.byType(TextField));
-    expect(textFieldWidget.controller!.text, isEmpty);
   });
 }

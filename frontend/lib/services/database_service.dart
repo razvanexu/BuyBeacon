@@ -1,4 +1,5 @@
 import 'package:buy_beacon/models/product.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseService {
@@ -13,13 +14,13 @@ class DatabaseService {
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDb();
-    return database;
+    return _database!;
   }
 
   //initializes DB first time
   Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
-    final path = '${dbPath}buybeacon.db';
+    final path = p.join(dbPath, 'buybeacon.db');
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 

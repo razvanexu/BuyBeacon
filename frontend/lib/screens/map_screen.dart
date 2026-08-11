@@ -1,7 +1,9 @@
 import 'dart:core';
-import 'dart:developer';
 
 import 'package:buy_beacon/models/shop_location.dart';
+import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
+import 'package:buy_beacon/orchestrators/shopping_state.dart';
+import 'package:buy_beacon/services/geofence_service.dart';
 import 'package:buy_beacon/services/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
@@ -14,16 +16,30 @@ class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _MapScreenState();
+  State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController mapController;
+  GoogleMapController? _mapController;
 
   @override
-  void initState() {
-    super.initState();
-    Provider.of<LocationService>(context, listen: false).getCurrentLocation();
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
+
+  void _updateCameraPosition(bg.Location? userLocation) {
+    if (_mapController == null || userLocation?.coords == null) return;
+
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLng(
+        LatLng(userLocation!.coords.latitude, userLocation.coords.longitude),
+      ),
+    );
   }
 
   Set<Marker> _createShopMarkers(
@@ -31,86 +47,53 @@ class _MapScreenState extends State<MapScreen> {
     Set<String> activeGeofenceIdentifiers,
     bg.Location? userLocation,
   ) {
-    log(
-      '[MapScreen] _addShopMarkers started with ${allLocations.length} locations.',
-      name: 'MapScreen',
-    );
     final Set<Marker> markers = {};
-    final List<ShopLocation> activeLocations = allLocations
-        .where(
-          (shop) => activeGeofenceIdentifiers.contains(
-            'shop_${shop.latitude}_${shop.longitude}',
-          ),
-        )
-        .toList();
-    ShopLocation? closestActiveShop;
+    if (userLocation == null || allLocations.isEmpty) {
+      return markers;
+    }
+
+    final activeLocations = allLocations.where((shop) {
+      final identifier = 'shop_${shop.latitude}_${shop.longitude}';
+      return activeGeofenceIdentifiers.contains(identifier);
+    }).toList();
+
+    if (activeLocations.isEmpty) {
+      return markers;
+    }
+
+    final userLatLng = LatLng(
+      userLocation.coords.latitude,
+      userLocation.coords.longitude,
+    );
+    ShopLocation? closestShop;
     double minDistance = double.infinity;
 
-    if (userLocation != null) {
-      for (var shop in activeLocations) {
-        final LatLng shopLatLng = LatLng(shop.latitude, shop.longitude);
-        final userLatLng = LatLng(
-          userLocation.coords.latitude,
-          userLocation.coords.longitude,
-        );
-        final distance = calculateDistance(userLatLng, shopLatLng);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestActiveShop = shop;
-        }
+    for (var shop in activeLocations) {
+      final shopLatLng = LatLng(shop.latitude, shop.longitude);
+      final distance = calculateDistance(userLatLng, shopLatLng);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestShop = shop;
       }
     }
+
     for (var shop in activeLocations) {
-      final LatLng shopLatLng = LatLng(shop.latitude, shop.longitude);
-      double distance = 0.0;
-      String distanceSnippet = 'Distance unknown';
-      if (userLocation != null) {
-        final userLatLng = LatLng(
-          userLocation.coords.latitude,
-          userLocation.coords.longitude,
-        );
-        distance = calculateDistance(userLatLng, shopLatLng);
-        distanceSnippet = '${(distance / 1000).toStringAsFixed(2)} km away';
-        log(
-          '[MapScreen] Calculated distance for'
-          '${shop.name}:'
-          '${distance.toStringAsFixed(2)}'
-          'meters',
-          name: 'MapScreen',
-        );
-      } else {
-        log(
-          '[MapScreen] _userLocation is null, cannot calculate distance for'
-          '${shop.name}.',
-          name: 'MapScreen',
-        );
-      }
+      final shopLatLng = LatLng(shop.latitude, shop.longitude);
+      final distance = calculateDistance(userLatLng, shopLatLng);
+      final distanceSnippet = '${(distance / 1000).toStringAsFixed(2)} km away';
 
       String productsDisplayString = shop.products.join(', ');
-      if (productsDisplayString.length > 500) {
-        productsDisplayString = '${productsDisplayString.substring(0, 500)}...';
+      if (productsDisplayString.length > 200) {
+        productsDisplayString = '${productsDisplayString.substring(0, 200)}...';
       }
       final String productSnippet = shop.products.isNotEmpty
           ? productsDisplayString
           : 'No products listed';
 
-      log(
-        '[MapScreen] productSnippet length for ${shop.name}: ${productSnippet.length}',
-        name: 'MapScreen',
-      );
-      log(
-        '[MapScreen] Final productSnippet for ${shop.name}: "$productSnippet"',
-        name: 'MapScreen',
-      );
+      final bool isClosest =
+          shop.latitude == closestShop?.latitude &&
+          shop.longitude == closestShop?.longitude;
 
-      BitmapDescriptor markerColor;
-      if (closestActiveShop != null &&
-          shop.latitude == closestActiveShop.latitude &&
-          shop.longitude == closestActiveShop.longitude) {
-        markerColor = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-      } else {
-        markerColor = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
-      }
       markers.add(
         Marker(
           markerId: MarkerId(shop.name),
@@ -119,62 +102,75 @@ class _MapScreenState extends State<MapScreen> {
             title: shop.name,
             snippet: '$distanceSnippet - $productSnippet',
           ),
-          icon: markerColor,
+          icon: isClosest
+              ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen)
+              : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
         ),
       );
     }
-    log(
-      '[MapScreen] _createShopMarkers finished. Total markers: ${markers.length}',
-      name: 'MapScreen',
-    );
     return markers;
-  }
-
-  void _onMapCreated(GoogleMapController gMController) {
-    mapController = gMController;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LocationService>(
-      builder: (context, locationService, child) {
+    // The top-level consumer listens for user location changes.
+    return Consumer3<LocationService, GeofenceService, ShoppingOrchestrator>(
+      builder: (context, locationService, geofenceService, orchestrator, child) {
         final userLocation = locationService.userLocation;
-        LatLng initialCameraPosition;
+        final activeIdentifiers = geofenceService.activeGeofenceIdentifiers;
 
-        if (userLocation != null) {
-          initialCameraPosition = LatLng(
-            userLocation.coords.latitude,
-            userLocation.coords.longitude,
-          );
-        } else {
-          initialCameraPosition = const LatLng(44.4267674, 26.1025384);
-        }
-
-        if (userLocation != null) {
+        // Show a loading indicator until we have the user's location.
+        if (userLocation?.coords == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Nearest Shops')),
-            body: const Center(child: CircularProgressIndicator()),
+            body: const Center(child: Text("Waiting for your location...")),
           );
         }
 
-        final Set<Marker> currentMarkers = _createShopMarkers(
-          locationService.monitoredShopLocations,
-          locationService.activeGeofenceIdentifiers,
-          userLocation,
-        );
+        _updateCameraPosition(userLocation);
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Nearest Shops')),
-          body: GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: initialCameraPosition,
-              zoom: 15.0,
-            ),
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-            markers: currentMarkers,
-          ),
+        // Once we have the user's location, we build the map.
+        // The StreamBuilder listens for shop location and loading state changes.
+        return StreamBuilder<ShoppingState>(
+          stream: orchestrator.onStateChanged,
+          initialData: orchestrator.currentState, // Use current state for initial build
+          builder: (context, snapshot) {
+            final allShopLocations = snapshot.data?.shopLocations ?? [];
+            final isLoading = snapshot.data?.isLoading ?? false;
+
+            final initialCameraPosition = LatLng(
+              userLocation!.coords.latitude,
+              userLocation.coords.longitude,
+            );
+
+            final Set<Marker> currentMarkers = _createShopMarkers(
+              allShopLocations,
+              activeIdentifiers,
+              userLocation,
+            );
+
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('Nearest Shops'),
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(4.0),
+                  child: isLoading
+                      ? const LinearProgressIndicator()
+                      : const SizedBox.shrink(),
+                ),
+              ),
+              body: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: initialCameraPosition,
+                  zoom: 15.0,
+                ),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                markers: currentMarkers,
+                onMapCreated: _onMapCreated,
+              ),
+            );
+          },
         );
       },
     );

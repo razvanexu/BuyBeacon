@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,7 +56,7 @@ class ShopFinderControllerTest {
         );
 
         // 2. Program the mock service
-        when(shopFinderService.findShops(anyList())).thenReturn(mockShopLocations);
+        when(shopFinderService.findShops(anyList(), any(), any())).thenReturn(mockShopLocations);
 
         // 3. Create the HTTP request body
         Map<String, List<String>> requestBody = Map.of("products", List.of("lapte"));
@@ -74,7 +75,7 @@ class ShopFinderControllerTest {
     @Test
     void findShops_shouldReturnEmptyList_whenServiceReturnsEmpty() throws Exception {
         //Arrange
-        when(shopFinderService.findShops(anyList())).thenReturn(Collections.emptyList());
+        when(shopFinderService.findShops(anyList(), any(), any())).thenReturn(Collections.emptyList());
         Map<String, List<String>> requestBody = Map.of("products", List.of("unknown product"));
 
         //Act & Assert
