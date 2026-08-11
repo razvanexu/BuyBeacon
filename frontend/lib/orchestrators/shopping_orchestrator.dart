@@ -6,11 +6,13 @@ import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/repositories/product_repository.dart';
 import 'package:buy_beacon/services/geofence_service.dart';
+import 'package:buy_beacon/services/location_service.dart';
 
 class ShoppingOrchestrator {
   final ProductProvider _productProvider;
   final ProductRepository _productRepository;
   final GeofenceService _geofenceService;
+  final LocationService _locationService;
 
   final _controller = StreamController<ShoppingState>.broadcast();
 
@@ -29,9 +31,11 @@ class ShoppingOrchestrator {
     required ProductProvider productProvider,
     required ProductRepository productRepository,
     required GeofenceService geofenceService,
+    required LocationService locationService,
   }) : _productProvider = productProvider,
        _productRepository = productRepository,
-       _geofenceService = geofenceService {
+       _geofenceService = geofenceService,
+       _locationService = locationService {
     _productProvider.onProductsChanged = _onProductsChanged;
   }
 
@@ -66,8 +70,13 @@ class ShoppingOrchestrator {
         name: 'ShoppingOrchestrator',
       );
 
+      final currentLocation =
+          _locationService.userLocation ?? await _locationService.getCurrentLocation();
+
       final shopLocations = await _productRepository.findShopsForProducts(
         products.toList(),
+        latitude: currentLocation?.coords.latitude,
+        longitude: currentLocation?.coords.longitude,
       );
       log(
         '[ShoppingOrchestrator] Fetched ${shopLocations.length} shop locations. Now adding geofences.',

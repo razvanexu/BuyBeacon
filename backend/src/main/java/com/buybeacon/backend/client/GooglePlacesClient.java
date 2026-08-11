@@ -24,11 +24,20 @@ public class GooglePlacesClient {
         this.apiKey = apiKey;
     }
 
-    public JsonNode findPlaces(String query){
-        String url = UriComponentsBuilder.fromUriString(PLACES_API_URL)
+    // Biasing radius (meters) applied around the user's coordinates when searching for shops.
+    private static final int SEARCH_RADIUS_METERS = 15_000;
+
+    public JsonNode findPlaces(String query, Double latitude, Double longitude) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(PLACES_API_URL)
                 .queryParam("query", query)
-                .queryParam("key", this.apiKey)
-                .toUriString();
+                .queryParam("key", this.apiKey);
+
+        if (latitude != null && longitude != null) {
+            builder.queryParam("location", latitude + "," + longitude)
+                    .queryParam("radius", SEARCH_RADIUS_METERS);
+        }
+
+        String url = builder.toUriString();
         logger.info("Accessing maps api with query {}", query);
         return restTemplate.getForObject(url, JsonNode.class);
     }

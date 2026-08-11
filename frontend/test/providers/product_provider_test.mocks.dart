@@ -60,10 +60,16 @@ class MockProductRepository extends _i1.Mock implements _i2.ProductRepository {
 
   @override
   _i3.Future<List<_i5.ShopLocation>> findShopsForProducts(
-    List<_i4.Product>? products,
-  ) =>
+    List<_i4.Product>? products, {
+    double? latitude,
+    double? longitude,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#findShopsForProducts, [products]),
+            Invocation.method(
+              #findShopsForProducts,
+              [products],
+              {#latitude: latitude, #longitude: longitude},
+            ),
             returnValue: _i3.Future<List<_i5.ShopLocation>>.value(
               <_i5.ShopLocation>[],
             ),
