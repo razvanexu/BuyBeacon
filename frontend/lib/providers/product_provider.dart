@@ -51,7 +51,7 @@ class ProductProvider extends ChangeNotifier {
       return;
     }
     try {
-      final newProduct = Product(name: name.trim());
+      final newProduct = Product(name: normalizedName.trim());
       await _productRepository.addProduct(newProduct);
       _products = await _productRepository
           .getAllProducts(); // Re-fetch the list from the DB to get the new ID.

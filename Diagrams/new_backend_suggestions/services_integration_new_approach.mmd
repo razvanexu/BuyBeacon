@@ -1,0 +1,42 @@
+flowchart TD
+    subgraph "Mobile App"
+        A["User Reminder List"]
+        B["Geofencing & Notifications"]
+    end
+    subgraph "Backend API (Spring Boot)"
+        C["/api/reminders Endpoint"]
+        D["Retailer APIs"]
+        E["Aggregator APIs"]
+        F["Google Places API"]
+        G["Web Scraper (JSoup)"]
+        H["Geocoding Service"]
+    end
+    subgraph "External Services"
+        I["Retailer Product APIs"]
+        J["Aggregator Product APIs"]
+        K["Google Places"]
+        L["Google Geocoding API"]
+        M["Web Search (Retailer Sites, Google, etc.)"]
+    end
+
+    A -- "Sends list" --> C
+    C -- "Try Retailer APIs" --> D
+    D -- "Query" --> I
+    D -- "Fail?" --> E
+    E -- "Query" --> J
+    E -- "Fail?" --> F
+    F -- "Query" --> K
+    F -- "Fail?" --> G
+    G -- "Scrape addresses" --> M
+    D -- "Success?" --> H
+    E -- "Success?" --> H
+    F -- "Success?" --> H
+    G -- "Success?" --> H
+    H -- "Geocode addresses" --> L
+    L -- "Lat/Lon" --> H
+    H -- "Coordinates" --> C
+    C -- "Store coordinates" --> B
+    B -- "Notify user when near store" --> A
+
+    %% Notes
+    G -.->|"Web scraping as last resort"| H 

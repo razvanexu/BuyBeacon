@@ -13,7 +13,7 @@ class DatabaseService {
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDb();
-    return database;
+    return _database!;
   }
 
   //initializes DB first time
