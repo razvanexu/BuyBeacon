@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -31,15 +31,14 @@ class LocationService extends ChangeNotifier {
         //Continue tracking after the app is terminated
         startOnBoot: true,
         //Restart background tracking after devise reboot
-        logLevel: bg.Config.LOG_LEVEL_VERBOSE,
+        logLevel: kDebugMode ? bg.Config.LOG_LEVEL_VERBOSE : bg.Config.LOG_LEVEL_ERROR,
         geofenceProximityRadius: 1000,
         //default radius in meters for geofencing
         geofenceInitialTriggerEntry: true,
         stopTimeout: 1,
-        // locationUpdateInterval: 5000,
         showsBackgroundLocationIndicator: true,
-        debug: true,
-        //enable debug sounds / notifications
+        //debug sounds/notifications only in debug builds
+        debug: kDebugMode,
         notification: bg.Notification(
           smallIcon: '@mipmap/ic_launcher',
           channelId: channel.id,
@@ -65,10 +64,12 @@ class LocationService extends ChangeNotifier {
   }
 
   void _onLocation(bg.Location location) {
-    log(
-      'Location updated: ${location.coords.latitude}, ${location.coords.longitude}',
-      name: 'LocationService',
-    );
+    if (kDebugMode) {
+      log(
+        'Location updated: ${location.coords.latitude}, ${location.coords.longitude}',
+        name: 'LocationService',
+      );
+    }
     _userLocation = location;
     notifyListeners();
   }
@@ -80,10 +81,6 @@ class LocationService extends ChangeNotifier {
         persist: true,
         samples: 1,
         timeout: 5000,
-      );
-      log(
-        'Current location: ${location.coords.latitude}, ${location.coords.longitude}',
-        name: 'LocationService',
       );
       _onLocation(location);
       return location;

@@ -23,10 +23,14 @@ class ProductRepository {
     return _databaseService.deleteProduct(id);
   }
 
-  Future<List<ShopLocation>> findShopsForProducts(List<Product> products) {
+  Future<List<ShopLocation>> findShopsForProducts(
+    List<Product> products, {
+    double? latitude,
+    double? longitude,
+  }) {
     if (products.isEmpty) {
       return Future.value([]);
     }
-    return _apiService.findShops(products);
+    return _apiService.findShops(products, latitude: latitude, longitude: longitude);
   }
 }

@@ -10,8 +10,11 @@ import 'package:buy_beacon/models/product.dart' as _i4;
 import 'package:buy_beacon/models/shop_location.dart' as _i5;
 import 'package:buy_beacon/repositories/product_repository.dart' as _i2;
 import 'package:buy_beacon/services/geofence_service.dart' as _i6;
+import 'package:buy_beacon/services/location_service.dart' as _i9;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as _i7;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as _i10;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -64,10 +67,16 @@ class MockProductRepository extends _i1.Mock implements _i2.ProductRepository {
 
   @override
   _i3.Future<List<_i5.ShopLocation>> findShopsForProducts(
-    List<_i4.Product>? products,
-  ) =>
+    List<_i4.Product>? products, {
+    double? latitude,
+    double? longitude,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#findShopsForProducts, [products]),
+            Invocation.method(
+              #findShopsForProducts,
+              [products],
+              {#latitude: latitude, #longitude: longitude},
+            ),
             returnValue: _i3.Future<List<_i5.ShopLocation>>.value(
               <_i5.ShopLocation>[],
             ),
@@ -142,6 +151,63 @@ class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
   @override
   void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+    Invocation.method(#notifyListeners, []),
+    returnValueForMissingStub: null,
+  );
+}
+
+/// A class which mocks [LocationService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLocationService extends _i1.Mock implements _i9.LocationService {
+  MockLocationService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  bool get hasListeners =>
+      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
+          as bool);
+
+  @override
+  _i3.Future<void> initialize({
+    required _i10.AndroidNotificationChannel? channel,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#initialize, [], {#channel: channel}),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<_i7.Location?> getCurrentLocation() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCurrentLocation, []),
+            returnValue: _i3.Future<_i7.Location?>.value(),
+          )
+          as _i3.Future<_i7.Location?>);
+
+  @override
+  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+    Invocation.method(#addListener, [listener]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+    Invocation.method(#removeListener, [listener]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void dispose() => super.noSuchMethod(
+    Invocation.method(#dispose, []),
     returnValueForMissingStub: null,
   );
 

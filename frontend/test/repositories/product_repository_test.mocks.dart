@@ -83,9 +83,17 @@ class MockApiService extends _i1.Mock implements _i6.ApiService {
   }
 
   @override
-  _i4.Future<List<_i7.ShopLocation>> findShops(List<_i5.Product>? products) =>
+  _i4.Future<List<_i7.ShopLocation>> findShops(
+    List<_i5.Product>? products, {
+    double? latitude,
+    double? longitude,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#findShops, [products]),
+            Invocation.method(
+              #findShops,
+              [products],
+              {#latitude: latitude, #longitude: longitude},
+            ),
             returnValue: _i4.Future<List<_i7.ShopLocation>>.value(
               <_i7.ShopLocation>[],
             ),
