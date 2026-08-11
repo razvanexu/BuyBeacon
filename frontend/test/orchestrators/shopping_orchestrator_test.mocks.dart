@@ -4,12 +4,14 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
-import 'dart:ui' as _i7;
+import 'dart:ui' as _i8;
 
 import 'package:buy_beacon/models/product.dart' as _i4;
 import 'package:buy_beacon/models/shop_location.dart' as _i5;
 import 'package:buy_beacon/repositories/product_repository.dart' as _i2;
 import 'package:buy_beacon/services/geofence_service.dart' as _i6;
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
+    as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -61,10 +63,14 @@ class MockProductRepository extends _i1.Mock implements _i2.ProductRepository {
           as _i3.Future<void>);
 
   @override
-  _i3.Future<List<_i5.ShopLocation>> findShopsForProducts(List<_i4.Product>? products) =>
+  _i3.Future<List<_i5.ShopLocation>> findShopsForProducts(
+    List<_i4.Product>? products,
+  ) =>
       (super.noSuchMethod(
             Invocation.method(#findShopsForProducts, [products]),
-            returnValue: _i3.Future<List<_i5.ShopLocation>>.value(<_i5.ShopLocation>[]),
+            returnValue: _i3.Future<List<_i5.ShopLocation>>.value(
+              <_i5.ShopLocation>[],
+            ),
           )
           as _i3.Future<List<_i5.ShopLocation>>);
 }
@@ -78,6 +84,22 @@ class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
   }
 
   @override
+  _i3.Stream<_i7.GeofenceEvent> get onGeofenceEvent =>
+      (super.noSuchMethod(
+            Invocation.getter(#onGeofenceEvent),
+            returnValue: _i3.Stream<_i7.GeofenceEvent>.empty(),
+          )
+          as _i3.Stream<_i7.GeofenceEvent>);
+
+  @override
+  Map<String, _i5.ShopLocation> get geofenceData =>
+      (super.noSuchMethod(
+            Invocation.getter(#geofenceData),
+            returnValue: <String, _i5.ShopLocation>{},
+          )
+          as Map<String, _i5.ShopLocation>);
+
+  @override
   Set<String> get activeGeofenceIdentifiers =>
       (super.noSuchMethod(
             Invocation.getter(#activeGeofenceIdentifiers),
@@ -87,11 +109,18 @@ class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
 
   @override
   bool get hasListeners =>
-      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false) as bool);
+      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
+          as bool);
 
   @override
   void initialize() => super.noSuchMethod(
     Invocation.method(#initialize, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void dispose() => super.noSuchMethod(
+    Invocation.method(#dispose, []),
     returnValueForMissingStub: null,
   );
 
@@ -105,20 +134,14 @@ class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
           as _i3.Future<void>);
 
   @override
-  void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void dispose() => super.noSuchMethod(
-    Invocation.method(#dispose, []),
     returnValueForMissingStub: null,
   );
 

@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant User
+    participant MobileApp as "Mobile App"
+    participant Backend as "Backend API"
+    participant Scraper as "Web Scraper"
+    participant Geocoder as "Geocoding Service"
+    participant Store as "Store Location"
+
+    User->>MobileApp: Adds product to Reminder List
+    MobileApp->>Backend: POST /api/reminders (Reminder List)
+    Backend->>Scraper: Search for stores selling product
+    Scraper->>Store: Fetch search results, extract addresses
+    Scraper->>Geocoder: Send addresses for geocoding
+    Geocoder-->>Scraper: Return lat/lon coordinates
+    Scraper-->>Backend: Return store coordinates
+    Backend-->>MobileApp: Return store coordinates
+    MobileApp->>MobileApp: Register geofences for stores
+    User->>MobileApp: Moves near a store
+    MobileApp->>MobileApp: Detects geofence entry
+    MobileApp-->>User: Sends push notification ("You are near a store with your item!") 

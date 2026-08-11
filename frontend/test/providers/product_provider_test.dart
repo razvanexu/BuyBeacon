@@ -108,4 +108,36 @@ void main() {
       verify(mockProductRepository.getAllProducts()).called(1);
     },
   );
+
+  test('addProduct correctly trims and normalizes name for new products', () async {
+    // ARRANGE
+    const productNameWithExtras = '  ?Another Test Product!  ';
+    const expectedNormalizedName = 'Another Test Product';
+    final newProductList = [Product(id: 1, name: expectedNormalizedName)];
+
+    // Ensure initial load is empty or doesn't contain the product
+    when(mockProductRepository.getAllProducts()).thenAnswer((_) async => []);
+    await productProvider.loadInitialData(); // Initial call to getAllProducts
+
+    // Setup for the getAllProducts call after addProduct
+    when(mockProductRepository.getAllProducts()).thenAnswer((_) async => newProductList);
+
+    // ACT
+    await productProvider.addProduct(productNameWithExtras);
+
+    // ASSERT
+    // Verify addProduct was called on the repository with the normalized name
+    verify(
+      mockProductRepository.addProduct(
+        argThat(predicate<Product>((p) => p.name == expectedNormalizedName)),
+      ),
+    ).called(1);
+
+    // Verify getAllProducts was called again to refresh the list
+    verify(mockProductRepository.getAllProducts()).called(2); // Initial load + after add
+
+    // Verify the product list in the provider is updated with the normalized name
+    expect(productProvider.products.length, 1);
+    expect(productProvider.products.first.name, expectedNormalizedName);
+  });
 }

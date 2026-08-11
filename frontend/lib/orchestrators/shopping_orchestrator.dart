@@ -45,7 +45,9 @@ class ShoppingOrchestrator {
       '[ShoppingOrchestrator] _fetchProductsAndShops called.',
       name: 'ShoppingOrchestrator',
     );
-    _emitState(isLoading: true);
+    // _emitState(isLoading: true);
+    _state = _state.copyWith(isLoading: true, hasConnectionError: false);
+    _controller.add(_state);
     try {
       final products = _productProvider.products;
 

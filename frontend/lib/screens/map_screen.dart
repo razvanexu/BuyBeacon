@@ -33,7 +33,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _updateCameraPosition(bg.Location? userLocation) {
-    if (_mapController != null && userLocation?.coords != null) return;
+    if (_mapController == null || userLocation?.coords == null) return;
 
     _mapController?.animateCamera(
       CameraUpdate.newLatLng(

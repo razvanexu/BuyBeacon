@@ -1,0 +1,26 @@
+flowchart TD
+    A["POST /api/reminders (Receive Reminder List)"]
+    B["For each product: Try Retailer APIs"]
+    C["If API fails, use Aggregator API"]
+    D["If still not found, use Google Places API"]
+    E["If all else fails, fallback to Web Scraping"]
+    F["Aggregate Store Addresses"]
+    G["Geocode Addresses (if needed)"]
+    H["Return Store Coordinates to Mobile App"]
+
+    A --> B
+    B -- "Success?" --> F
+    B -- "Fail" --> C
+    C -- "Success?" --> F
+    C -- "Fail" --> D
+    D -- "Success?" --> F
+    D -- "Fail" --> E
+    E --> F
+    F --> G
+    G --> H
+
+    %% Notes
+    B -.->|"Retailer APIs: Walmart, Carrefour, etc."| C
+    C -.->|"Aggregator APIs: Google Shopping, etc."| D
+    D -.->|"Google Places API for store types"| E
+    E -.->|"Web scraping as last resort"| F 

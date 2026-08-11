@@ -7,15 +7,14 @@ import 'package:logging/logging.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  final log = Logger('AppIntegrationTest');
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
 
-  final log = Logger('AppIntegrationTest');
-
-  group('end-to-end test', () {
-    testWidgets('Add, attempt duplicate, and delete a product', (
+  group('E2E Test - Happy Path (BACKEND MUST BE RUNNING)', () {
+    testWidgets('Full user journey: add, duplicate, delete, and receive notification', (
       WidgetTester tester,
     ) async {
       //ARRANGE
@@ -86,6 +85,29 @@ void main() {
       //verify the list is empty again
       expect(find.text('Your shopping list is empty.'), findsOneWidget);
       expect(find.byType(ListView), findsNothing);
+    });
+  });
+
+  group('E2E Test - Error Handling (BACKEND MUST BE STOPPED)', () {
+    testWidgets('Show snackbar when backend connection fails', (
+      WidgetTester tester,
+    ) async {
+      //ARRANGE
+      //start the app
+      app.main();
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      //ACT Try to add a product. This should fail if the backend is offline.
+      await tester.enterText(find.byType(TextField), 'Failing entry');
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle(const Duration(seconds: 5)); // Wait for API timeout
+
+      // ASSERT: Verify that the error snackbar is displayed.
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+        find.text('Connection error. Please check your internet connection.'),
+        findsOneWidget,
+      );
     });
   });
 }
