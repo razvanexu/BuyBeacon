@@ -18,7 +18,7 @@ class NotificationDecisionService {
   StreamSubscription? _geofenceSubscription;
   Timer? _notificationDebouncetimer;
   final Set<String> _pendingNotificationGeofences = {};
-  final duration = Duration(seconds: 15);
+  final duration = Duration(seconds: 5);
 
   NotificationDecisionService({
     required GeofenceService geofenceService,

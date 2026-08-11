@@ -40,10 +40,12 @@ class MockNotificationService extends _i1.Mock
   @override
   _i3.Future<void> initialize({
     void Function(_i4.NotificationResponse)? onNotificationTap,
+    required List<_i4.AndroidNotificationChannel>? channels,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#initialize, [], {
               #onNotificationTap: onNotificationTap,
+              #channels: channels,
             }),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
@@ -82,9 +84,11 @@ class MockLocationService extends _i1.Mock implements _i5.LocationService {
           as bool);
 
   @override
-  _i3.Future<void> initialize() =>
+  _i3.Future<void> initialize({
+    required _i4.AndroidNotificationChannel? channel,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#initialize, []),
+            Invocation.method(#initialize, [], {#channel: channel}),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

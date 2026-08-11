@@ -1,0 +1,27 @@
+flowchart TD
+    subgraph "Mobile App"
+        A["User Reminder List"]
+        B["Geofencing & Notifications"]
+    end
+    subgraph "Backend API (Spring Boot)"
+        C["/api/reminders Endpoint"]
+        D["Web Scraper (JSoup)"]
+        E["Geocoding Service"]
+    end
+    subgraph "External Services"
+        F["Google Geocoding API"]
+        G["Web Search (Retailer Sites, Google, etc.)"]
+    end
+
+    A -- "Sends list" --> C
+    C -- "For each item: search" --> D
+    D -- "Scrape addresses" --> G
+    D -- "Extract addresses" --> E
+    E -- "Geocode addresses" --> F
+    F -- "Lat/Lon" --> E
+    E -- "Coordinates" --> C
+    C -- "Store coordinates" --> B
+    B -- "Notify user when near store" --> A
+
+    %% Notes
+    C -.->|"No user accounts, no price comparison in v1"| D 

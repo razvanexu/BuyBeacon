@@ -1,0 +1,35 @@
+---
+id: 49966322-e916-48e4-8577-57fbdb9e5e38
+---
+sequenceDiagram
+    participant User
+    participant MobileApp as "Mobile App"
+    participant Backend as "Backend API"
+    participant RetailerAPI as "Retailer API"
+    participant AggregatorAPI as "Aggregator API"
+    participant PlacesAPI as "Google Places API"
+    participant Scraper as "Web Scraper"
+    participant Geocoder as "Geocoding Service"
+
+    User->>MobileApp: Adds product to Reminder List
+    MobileApp->>Backend: POST /api/reminders (Reminder List)
+    alt Retailer API available
+        Backend->>RetailerAPI: Query for product/store
+        RetailerAPI-->>Backend: Return store addresses
+    else Aggregator API available
+        Backend->>AggregatorAPI: Query for product/store
+        AggregatorAPI-->>Backend: Return store addresses
+    else Google Places API available
+        Backend->>PlacesAPI: Query for store type/location
+        PlacesAPI-->>Backend: Return store addresses
+    else Fallback to Web Scraping
+        Backend->>Scraper: Search for stores
+        Scraper-->>Backend: Return store addresses
+    end
+    Backend->>Geocoder: Geocode addresses (if needed)
+    Geocoder-->>Backend: Return lat/lon
+    Backend-->>MobileApp: Return store coordinates
+    MobileApp->>MobileApp: Register geofences for stores
+    User->>MobileApp: Moves near a store
+    MobileApp->>MobileApp: Detects geofence entry
+    MobileApp-->>User: Sends push notification ("You are near a store with your item!")

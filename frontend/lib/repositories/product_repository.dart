@@ -24,9 +24,9 @@ class ProductRepository {
   }
 
   Future<List<ShopLocation>> findShopsForProducts(List<Product> products) {
-    // if (products.isEmpty) {
-    //   return Future.value([]);
-    // }
+    if (products.isEmpty) {
+      return Future.value([]);
+    }
     return _apiService.findShops(products);
   }
 }
