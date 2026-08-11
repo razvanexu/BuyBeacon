@@ -4,16 +4,19 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
 
@@ -25,6 +28,9 @@ public class SeleniumHtmlFetcher implements HtmlFetcher {
     private static final Logger logger = LoggerFactory.getLogger(SeleniumHtmlFetcher.class);
     private static final Duration PAGE_LOAD_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration READY_STATE_TIMEOUT = Duration.ofSeconds(5);
+
+    @Value("${selenium.remote.url}")
+    private String seleniumRemoteUrl;
 
     @Override
     public String fetchHtml(String url) throws IOException {
@@ -57,14 +63,14 @@ public class SeleniumHtmlFetcher implements HtmlFetcher {
         }
     }
 
-    private WebDriver createWebDriver(){
+    private WebDriver createWebDriver() throws IOException {
         ChromeOptions options = new ChromeOptions();
 
         options.addArguments("--disable-blink-features=AutomationControlled");
         options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
         options.setExperimentalOption("useAutomationExtension", false);
 
-        options.addArguments("--headless");
+        options.addArguments("--headless=new");
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,1200");
         options.addArguments("--ignore-certificate-errors");
@@ -73,6 +79,11 @@ public class SeleniumHtmlFetcher implements HtmlFetcher {
         options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" +
                 "(KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36");
 
-        return new ChromeDriver(options);
+        try {
+            return new RemoteWebDriver(new URL(seleniumRemoteUrl), options);
+        } catch (MalformedURLException e) {
+            throw new IOException("Invalid Selenium remote URL: " + seleniumRemoteUrl, e);
+        }
+
     }
 }
