@@ -1,0 +1,57 @@
+classDiagram
+    direction LR
+
+    class ScraperController {
+        +getProducts(query, retailer)
+    }
+
+    class ScraperOrchestrator {
+        -Set~RetailerScraper~ retailerScrapers
+        +scrapeProducts(query, retailer)
+    }
+
+    class RetailerScraper {
+        <<Interface>>
+        +scrapeProducts(query) List~Product~
+        +supports(retailer) boolean
+    }
+
+    class CarrefourScraper {
+        -HtmlFetcher htmlFetcher
+        -HtmlParser htmlParser
+        +scrapeProducts(query) List~Product~
+        +supports(retailer) boolean
+    }
+
+    class HtmlFetcher {
+        <<Interface>>
+        +fetchHtml(url) String
+    }
+
+    class JsoupHtmlFetcher {
+        +fetchHtml(url) String
+    }
+
+    class HtmlParser {
+        <<Interface>>
+        +parse(rawHtml, selectors) List~Map~String, String~~
+    }
+
+    class JsoupHtmlParser {
+        +parse(rawHtml, selectors) List~Map~String, String~~
+    }
+    
+    class Product {
+        -String name
+        -String price
+        -String url
+    }
+
+    ScraperController --> ScraperOrchestrator : uses
+    ScraperOrchestrator --> "1..*" RetailerScraper : orchestrates
+    CarrefourScraper --|> RetailerScraper : implements
+    CarrefourScraper --> HtmlFetcher : uses
+    CarrefourScraper --> HtmlParser : uses
+    JsoupHtmlFetcher --|> HtmlFetcher : implements
+    JsoupHtmlParser --|> HtmlParser : implements
+    CarrefourScraper ..> Product : creates

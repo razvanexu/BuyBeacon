@@ -1,0 +1,21 @@
+flowchart TD
+    subgraph "Mobile App (Flutter)"
+        A1["User adds/removes items to Reminder List"]
+        A2["Geolocation & Geofencing"]
+        A3["Receives push notification"]
+    end
+    subgraph "Backend (Spring Boot)"
+        B1["REST API: /api/reminders"]
+        B2["Web Scraper (JSoup)"]
+        B3["Geocoding Service (Google API)"]
+    end
+    A1 -->|"Sends Reminder List"| B1
+    B1 -->|"For each item: search for stores"| B2
+    B2 -->|"Extracts store addresses"| B3
+    B3 -->|"Converts addresses to lat/lon"| B1
+    B1 -->|"Returns store coordinates"| A2
+    A2 -->|"Monitors user location, triggers geofence"| A3
+    A3 -->|"Notifies user when near store"| A1
+    %% Notes
+    A2 -.->|"No user accounts; list stored locally"| A1
+    B2 -.->|"No price comparison or route planning in v1"| B3 

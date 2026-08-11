@@ -1,0 +1,29 @@
+flowchart TD
+    A["User opens app"]
+    B["View Reminder List"]
+    C["Add product to list"]
+    D["Remove product from list"]
+    E["Send updated list to backend"]
+    F["Receive store coordinates from backend"]
+    G["Request location permissions"]
+    H["Register geofences for stores"]
+    I["App runs in background"]
+    J["User enters geofence area"]
+    K["Receive push notification"]
+
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    K --> B
+
+    %% Notes
+    G -.->|"User must grant location/background permissions"| H
+    I -.->|"Geofencing works in background"| J 

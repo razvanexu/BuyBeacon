@@ -1,0 +1,19 @@
+flowchart TD
+    A["POST /api/reminders (Receive Reminder List)"]
+    B["For each product: Web Search"]
+    C["Parse Search Results (JSoup)"]
+    D["Extract Store Addresses"]
+    E["Geocode Addresses (Google API)"]
+    F["Aggregate Store Coordinates"]
+    G["Return Coordinates to Mobile App"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+
+    %% Notes
+    C -.->|"Web scraping only, no real-time inventory"| D
+    F -.->|"No user accounts, no price comparison in v1"| G 

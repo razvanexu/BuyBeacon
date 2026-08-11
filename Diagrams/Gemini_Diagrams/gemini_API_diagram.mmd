@@ -1,0 +1,37 @@
+classDiagram
+    direction LR
+
+    class ShopFinderController {
+        <<RestController>>
+        +findShops(requestDto) ResponseEntity~List~ShopLocationDto~~
+    }
+    note for ShopFinderController "POST /api/reminders"
+
+    class ScraperController {
+        <<RestController>>
+        +getProducts(query, retailer) List~Product~
+    }
+    note for ScraperController "GET /api/scrape/products"
+
+    class ProductSearchRequestDto {
+        <<DTO>>
+        +List~String~ products
+    }
+
+    class ShopLocationDto {
+        <<DTO>>
+        +double latitude
+        +double longitude
+    }
+
+    class Product {
+        <<DTO>>
+        +String name
+        +String price
+        +String url
+    }
+
+    ShopFinderController ..> ProductSearchRequestDto : "uses as @RequestBody"
+    ShopFinderController ..> ShopLocationDto : "returns in ResponseEntity"
+
+    ScraperController ..> Product : "returns in ResponseBody"

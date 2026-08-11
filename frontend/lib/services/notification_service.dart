@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:buy_beacon/services/notification_channel_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
@@ -12,9 +13,26 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  static const AndroidNotificationChannel androidChannel =
+      NotificationChannelService.androidReminderChannel;
+
   Future<void> initialize({
     void Function(NotificationResponse response)? onNotificationTap,
+    required List<AndroidNotificationChannel> channels,
   }) async {
+    final androidPlugin = _localNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    for (final channel in channels) {
+      await androidPlugin?.createNotificationChannel(channel);
+    }
+
+    log('Creating android notification channel...', name: 'NotificationService');
+    await _localNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(androidChannel);
+
+    log('[NotificationService] Initializing...', name: 'NotificationService');
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -26,14 +44,29 @@ class NotificationService {
       iOS: initializationSettingsIOS,
     );
 
-    await _localNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse:
-          onNotificationTap ??
-          (NotificationResponse response) async {
-            log('Notification tapped: ${response.payload}', name: 'NotificationService');
-          },
-    );
+    try {
+      await _localNotificationsPlugin.initialize(
+        initializationSettings,
+        onDidReceiveNotificationResponse:
+            onNotificationTap ??
+            (NotificationResponse response) async {
+              log(
+                'Notification tapped: ${response.payload}',
+                name: 'NotificationService',
+              );
+            },
+      );
+      log(
+        '[NotificationService] FlutterLocalNotificationsPlugin initialized successfully.',
+        name: 'NotificationService',
+      );
+    } catch (e) {
+      log(
+        '[NotificationService] ERROR initializing FlutterLocalNotificationsPlugin: $e',
+        name: 'NotificationService',
+        error: e,
+      );
+    }
     log('NotificationService initialized.', name: 'NotificationService');
   }
 
@@ -42,24 +75,44 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'buybeacon_channel_id',
-      'buybeacon_reminders',
-      channelDescription: 'Notifications for product reminders near stores',
+    log(
+      '[NotificationService] showNotification called. Title: "$title", Body: "$body", Payload: "$payload"',
+      name: 'NotificationService',
+    );
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      androidChannel.id,
+      androidChannel.name,
+      channelDescription: androidChannel.description,
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
+      ticker: 'BuyBeacon notification',
+      autoCancel: true,
+      showWhen: true,
     );
-    const NotificationDetails notificationDetails = NotificationDetails(
+    final NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,
     );
 
-    await _localNotificationsPlugin.show(
-      0,
-      title,
-      body,
-      notificationDetails,
-      payload: payload,
-    );
+    try {
+      await _localNotificationsPlugin.show(
+        DateTime.now().millisecondsSinceEpoch % 2147483647,
+        title,
+        body,
+        notificationDetails,
+        payload: payload,
+      );
+      log(
+        '[NotificationService] Notification SHOWN successfully (or at least attempted). Title: "$title"',
+        name: 'NotificationService',
+      );
+    } catch (e) {
+      log(
+        '[NotificationService] ERROR showing notification. Title: "$title", Error: $e',
+        name: 'NotificationService',
+        error: e,
+      );
+    }
     log('Showing notification $title', name: 'NotificationService');
   }
 }

@@ -1,0 +1,25 @@
+Date: 2025-07-24
+
+*   **App Renaming:**
+    *   Changed the Flutter app name in `frontend/pubspec.yaml` to `buy_beacon`.
+    *   Updated the Android app label in `frontend/android/app/src/main/AndroidManifest.xml` to `buy_beacon`.
+    *   Modified the Android package name (`applicationId` and `namespace`) in `frontend/android/app/build.gradle.kts` to `com.buy_beacon.frontend`.
+    *   Confirmed the `MainActivity.kt` package declaration and directory structure were updated correctly.
+    *   Verified the iOS Bundle ID in `frontend/ios/Runner.xcodeproj/project.pbxproj` was updated to `buy_beacon.frontend`.
+
+*   **Google Maps Integration:**
+    *   Added the `google_maps_flutter` dependency to `frontend/pubspec.yaml`.
+    *   Created `frontend/lib/screens/map_screen.dart` to display the map.
+    *   Integrated the `MapScreen` into `frontend/lib/screens/home_screen.dart` with a map icon in the `AppBar` for navigation.
+    *   Configured Google Maps API key placement in `frontend/android/app/src/main/AndroidManifest.xml` and `frontend/ios/Runner/AppDelegate.swift`.
+    *   Resolved Android API key authorization issues by confirming correct placement and enabling "Maps SDK for Android" in Google Cloud Console.
+
+*   **Location and Geofencing Fixes:**
+    *   Addressed the "Geofence monitoring is forbidden with location permission 'WhenInUse'" error on Android by adding `allowBackgroundLocation: true` to `bg.Config` in `frontend/lib/services/location_service.dart`. This resolved the notification issue.
+
+*   **Map Data Refactoring:**
+    *   Refactored `ProductProvider` (`frontend/lib/providers/product_provider.dart`) to store and expose `List<ShopLocation>` (`_shopLocations`) after fetching them from `ApiService`, avoiding redundant API calls in `MapScreen`.
+    *   Updated `MapScreen` to consume `shopLocations` directly from `ProductProvider`.
+
+*   **Current Issue:**
+    *   The map markers are still showing "unknown distance" and are all green, indicating that `_userLocation` is `null` when `_addShopMarkers` is called in `MapScreen`. Added logging to `map_screen.dart` to debug this.
