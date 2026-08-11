@@ -3,7 +3,7 @@ import 'dart:developer';
 
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/services/location_service.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 
 class GeofenceService extends ChangeNotifier {
@@ -82,13 +82,15 @@ class GeofenceService extends ChangeNotifier {
 
     for (final location in newLocations) {
       final identifier = 'shop_${location.latitude}_${location.longitude}';
-      log(
-        '[GeofenceService] Preparing to ADD or UPDATE geofence:'
-        'ID=$identifier,'
-        'Lat=${location.latitude}, Lon=${location.longitude},'
-        'Name=${location.name}',
-        name: 'GeofenceService',
-      );
+      if (kDebugMode) {
+        log(
+          '[GeofenceService] Preparing to ADD or UPDATE geofence:'
+          'ID=$identifier,'
+          'Lat=${location.latitude}, Lon=${location.longitude},'
+          'Name=${location.name}',
+          name: 'GeofenceService',
+        );
+      }
 
       if (currentIdentifiers.contains(identifier)) {
         _geofenceData[identifier] = location;
@@ -158,10 +160,12 @@ class GeofenceService extends ChangeNotifier {
   }
 
   void _onGeofence(bg.GeofenceEvent event) {
-    log(
-      '[GeofenceService] <<<<< _onGeofence EVENT RECEIVED >>>>> ID: ${event.identifier}, Action: ${event.action}',
-      name: 'GeofenceService',
-    );
+    if (kDebugMode) {
+      log(
+        '[GeofenceService] <<<<< _onGeofence EVENT RECEIVED >>>>> ID: ${event.identifier}, Action: ${event.action}',
+        name: 'GeofenceService',
+      );
+    }
     _geofenceEventController.add(event);
     if (event.action == 'ENTER') {
       _activeGeofenceIdentifiers.add(event.identifier);

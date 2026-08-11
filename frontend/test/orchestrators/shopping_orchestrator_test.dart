@@ -8,6 +8,7 @@ import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/repositories/product_repository.dart';
 import 'package:buy_beacon/services/geofence_service.dart';
+import 'package:buy_beacon/services/location_service.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -15,11 +16,12 @@ import 'package:mockito/mockito.dart';
 
 import 'shopping_orchestrator_test.mocks.dart';
 
-@GenerateMocks([ProductRepository, GeofenceService])
+@GenerateMocks([ProductRepository, GeofenceService, LocationService])
 void main() {
   late ShoppingOrchestrator orchestrator;
   late MockProductRepository mockProductRepository;
   late MockGeofenceService mockGeofenceService;
+  late MockLocationService mockLocationService;
   late CustomMockProductProvider customMockProductProvider;
 
   setUp(() {
@@ -28,6 +30,10 @@ void main() {
     log('TEST_DEBUG: setUp - mockProductRepository created');
     mockGeofenceService = MockGeofenceService();
     log('TEST_DEBUG: setUp - mockGeofenceService created');
+    mockLocationService = MockLocationService();
+    when(mockLocationService.userLocation).thenReturn(null);
+    when(mockLocationService.getCurrentLocation()).thenAnswer((_) async => null);
+    log('TEST_DEBUG: setUp - mockLocationService created');
     customMockProductProvider = CustomMockProductProvider();
     log('TEST_DEBUG: setUp - customMockProductProvider created');
 
@@ -45,6 +51,7 @@ void main() {
       productProvider: customMockProductProvider,
       productRepository: mockProductRepository,
       geofenceService: mockGeofenceService,
+      locationService: mockLocationService,
     );
     log('TEST_DEBUG: setUp - ShoppingOrchestrator CREATED');
     log('TEST_DEBUG: setUp END');

@@ -52,6 +52,7 @@ void main() async {
     productProvider: productProvider,
     productRepository: productRepository,
     geofenceService: geofenceService,
+    locationService: locationService,
   );
   log('[main] ShoppingOrchestrator created.', name: 'MyAppMain');
 

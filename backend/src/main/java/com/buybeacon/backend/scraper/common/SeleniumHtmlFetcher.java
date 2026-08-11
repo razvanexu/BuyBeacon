@@ -1,13 +1,20 @@
 package com.buybeacon.backend.scraper.common;
 
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 
 @Component
@@ -15,24 +22,39 @@ import java.util.Collections;
 @Profile("!test")
 public class SeleniumHtmlFetcher implements HtmlFetcher {
 
+    private static final Logger logger = LoggerFactory.getLogger(SeleniumHtmlFetcher.class);
+    private static final Duration PAGE_LOAD_TIMEOUT = Duration.ofSeconds(15);
+    private static final Duration READY_STATE_TIMEOUT = Duration.ofSeconds(5);
+
     @Override
     public String fetchHtml(String url) throws IOException {
-
         WebDriver driver = null;
         try {
-                driver = createWebDriver();
-                driver.get(url);
-                try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                return driver.getPageSource();
-            } finally {
-                if (driver != null) {
-                        driver.quit();
-                    }
+            driver = createWebDriver();
+            driver.manage().timeouts().pageLoadTimeout(PAGE_LOAD_TIMEOUT);
+            driver.get(url);
+            waitForPageReady(driver);
+            return driver.getPageSource();
+        } catch (WebDriverException e) {
+            // Selenium throws unchecked exceptions (driver crash, timeout, etc.).
+            // Wrap them so callers' existing IOException handling can react gracefully.
+            throw new IOException("Failed to fetch HTML via Selenium for url: " + url, e);
+        } finally {
+            if (driver != null) {
+                driver.quit();
             }
+        }
+    }
+
+    private void waitForPageReady(WebDriver driver) {
+        try {
+            new WebDriverWait(driver, READY_STATE_TIMEOUT).until(webDriver ->
+                    "complete".equals(((JavascriptExecutor) webDriver)
+                            .executeScript("return document.readyState")));
+        } catch (TimeoutException e) {
+            logger.warn("Page did not reach 'complete' readyState within {}s, proceeding with current content.",
+                    READY_STATE_TIMEOUT.getSeconds());
+        }
     }
 
     private WebDriver createWebDriver(){

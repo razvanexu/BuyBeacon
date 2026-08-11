@@ -50,7 +50,8 @@ public class ShopFinderController {
         }
 
         logger.info("Handling POST request on api/shops/find");
-        List<ShopResponseDto> shopLocations = shopFinderService.findShops(requestDto.products());
+        List<ShopResponseDto> shopLocations = shopFinderService.findShops(
+                requestDto.products(), requestDto.latitude(), requestDto.longitude());
         return ResponseEntity.ok(shopLocations);
     }
 }

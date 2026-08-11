@@ -1,0 +1,7 @@
+sdk.dir=/path/to/Android/sdk
+flutter.sdk=/path/to/flutter
+
+# Google Maps API key, restricted in Google Cloud Console to this app's
+# package name + SHA-1 signing certificate. Get one at
+# https://console.cloud.google.com/google/maps-apis/credentials
+MAPS_API_KEY=your-api-key-here
