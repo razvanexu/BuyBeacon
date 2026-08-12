@@ -56,10 +56,34 @@ class ShopFinderServiceTest {
     }
 
     @Test
+    void findShops_shouldUseDiscoveredCoordinatesDirectly_withoutReGeocoding() {
+        //ARRANGE
+        // Shops discovered via Places Nearby Search already carry coordinates -- no Text Search
+        // re-geocode call should happen for them.
+        when(webSearchService.findShopLocations("milk", null, null)).thenReturn(List.of(
+                new DiscoveredShop("Carrefour Vitan", 44.4, 26.1),
+                new DiscoveredShop("Mega Image Unirii", 44.42, 26.11)
+        ));
+
+        //ACT
+        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
+
+        //ASSERT
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(s -> s.storeName().equals("Carrefour Vitan")
+                && s.latitude() == 44.4 && s.longitude() == 26.1));
+        assertTrue(result.stream().anyMatch(s -> s.storeName().equals("Mega Image Unirii")
+                && s.latitude() == 44.42 && s.longitude() == 26.11));
+        verifyNoInteractions(googlePlacesClient);
+    }
+
+    @Test
     void findShops_shouldAggregateAndReturnUniqueShops() throws IOException {
         //ARRANGE
-        when(webSearchService.findShopLocations("milk")).thenReturn(List.of("Carrefour", "Mega Image"));
-        when(webSearchService.findShopLocations("bread")).thenReturn(List.of("Carrefour", "Lidl"));
+        when(webSearchService.findShopLocations("milk", null, null)).thenReturn(List.of(
+                DiscoveredShop.withoutCoordinates("Carrefour"), DiscoveredShop.withoutCoordinates("Mega Image")));
+        when(webSearchService.findShopLocations("bread", null, null)).thenReturn(List.of(
+                DiscoveredShop.withoutCoordinates("Carrefour"), DiscoveredShop.withoutCoordinates("Lidl")));
 
         JsonNode carrefourResponse = objectMapper.readTree(
                 "{\"status\":\"OK\",\"results\":[{\"name\":\"Carrefour Vitan\",\"geometry\":{\"location\":{\"lat\":44" +
@@ -130,7 +154,8 @@ class ShopFinderServiceTest {
     @Test
     void findShops_ShouldHandleGoogleApiErrorsGracefully() throws IOException {
         //ARRANGE
-        when(webSearchService.findShopLocations(anyString())).thenReturn(List.of("Failing Shop"));
+        when(webSearchService.findShopLocations(anyString(), any(), any()))
+                .thenReturn(List.of(DiscoveredShop.withoutCoordinates("Failing Shop")));
         JsonNode errorResponse = objectMapper.readTree("{\"status\":\"REQUEST_DENIED\"}");
         when(googlePlacesClient.findPlaces(anyString(), any(), any())).thenReturn(errorResponse);
 
@@ -143,10 +168,35 @@ class ShopFinderServiceTest {
     }
 
     @Test
+    void findShops_shouldOnlyUseClosestBranch_whenGeocodeReturnsMultipleResults() throws IOException {
+        //ARRANGE
+        // A generic brand name (e.g. from retailer enrichment, with no coordinates) matches every
+        // branch of that chain in the search radius via Text Search -- only the top/closest one
+        // should end up in the final list, not all of them.
+        when(webSearchService.findShopLocations("milk", null, null))
+                .thenReturn(List.of(DiscoveredShop.withoutCoordinates("Carrefour")));
+
+        JsonNode multiBranchResponse = objectMapper.readTree(
+                "{\"status\":\"OK\",\"results\":["
+                        + "{\"name\":\"Carrefour Vitan\",\"geometry\":{\"location\":{\"lat\":44.4,\"lng\":26.1}}},"
+                        + "{\"name\":\"Carrefour Militari\",\"geometry\":{\"location\":{\"lat\":44.45,\"lng\":26.0}}}"
+                        + "]}"
+        );
+        when(googlePlacesClient.findPlaces("Carrefour near me", null, null)).thenReturn(multiBranchResponse);
+
+        //ACT
+        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
+
+        //ASSERT
+        assertEquals(1, result.size(), "Only the closest/top branch should be returned");
+        assertEquals("Carrefour Vitan", result.get(0).storeName());
+    }
+
+    @Test
     void findShops_shouldAddRetailerAsCandidateShop_whenScraperConfirmsProductAvailability() throws IOException {
         //ARRANGE
         // Web search finds nothing useful, but the Carrefour scraper confirms the product is actually sold there.
-        when(webSearchService.findShopLocations("milk")).thenReturn(Collections.emptyList());
+        when(webSearchService.findShopLocations("milk", null, null)).thenReturn(Collections.emptyList());
         when(scraperOrchestrator.tryScrapeProducts("milk", "Carrefour"))
                 .thenReturn(List.of(new Product("Milk 1L", "5.99", "https://carrefour.ro/milk")));
 
@@ -194,7 +244,7 @@ class ShopFinderServiceTest {
         assertNotNull(resultForEmpty);
         assertTrue(resultForEmpty.isEmpty(), "Should return an empty list for an empty product input");
 
-        verify(webSearchService, never()).findShopLocations(anyString());
+        verify(webSearchService, never()).findShopLocations(anyString(), any(), any());
         verify(googlePlacesClient, never()).findPlaces(anyString(), any(), any());
     }
 

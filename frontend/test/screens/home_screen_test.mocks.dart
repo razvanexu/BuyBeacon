@@ -7,8 +7,9 @@ import 'dart:async' as _i7;
 import 'dart:collection' as _i2;
 import 'dart:ui' as _i6;
 
+import 'package:buy_beacon/models/category_option.dart' as _i8;
 import 'package:buy_beacon/models/product.dart' as _i5;
-import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart' as _i8;
+import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart' as _i9;
 import 'package:buy_beacon/orchestrators/shopping_state.dart' as _i3;
 import 'package:buy_beacon/providers/product_provider.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
@@ -93,6 +94,33 @@ class MockProductProvider extends _i1.Mock implements _i4.ProductProvider {
           as _i7.Future<void>);
 
   @override
+  _i7.Future<String?> lookupCategory(String? name) =>
+      (super.noSuchMethod(
+            Invocation.method(#lookupCategory, [name]),
+            returnValue: _i7.Future<String?>.value(),
+          )
+          as _i7.Future<String?>);
+
+  @override
+  _i7.Future<List<_i8.CategoryOption>> getCategoryOptions() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCategoryOptions, []),
+            returnValue: _i7.Future<List<_i8.CategoryOption>>.value(
+              <_i8.CategoryOption>[],
+            ),
+          )
+          as _i7.Future<List<_i8.CategoryOption>>);
+
+  @override
+  _i7.Future<void> addProductWithCategory(String? name, String? category) =>
+      (super.noSuchMethod(
+            Invocation.method(#addProductWithCategory, [name, category]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   _i7.Future<void> deleteProduct(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteProduct, [id]),
@@ -130,7 +158,7 @@ class MockProductProvider extends _i1.Mock implements _i4.ProductProvider {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockShoppingOrchestrator extends _i1.Mock
-    implements _i8.ShoppingOrchestrator {
+    implements _i9.ShoppingOrchestrator {
   MockShoppingOrchestrator() {
     _i1.throwOnMissingStub(this);
   }
