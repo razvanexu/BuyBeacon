@@ -40,7 +40,10 @@ class LocationService extends ChangeNotifier {
         //debug sounds/notifications only in debug builds
         debug: kDebugMode,
         notification: bg.Notification(
-          smallIcon: '@mipmap/ic_launcher',
+          // ic_launcher is a full-color launcher icon, which Android rejects for
+          // foreground-service notifications ("Invalid notification (no valid small icon)").
+          // Notification small icons must be a flat, alpha-masked silhouette instead.
+          smallIcon: 'drawable/ic_stat_notify',
           channelId: channel.id,
           channelName: channel.name,
           title: 'BuyBeacon is running',

@@ -26,12 +26,19 @@ class GeofenceService extends ChangeNotifier {
     log('[GeofenceService] Instance created.', name: 'GeofenceService');
   }
 
-  void initialize() {
+  Future<void> initialize() async {
     log(
       '[GeofenceService] Initializing GeofenceService and setting onGeofence listener.',
       name: 'GeofenceService',
     );
     bg.BackgroundGeolocation.onGeofence(_onGeofence);
+
+    // Native geofences persist across app restarts (that's the point, for background
+    // tracking), but _geofenceData is in-memory and resets every launch. Without this,
+    // addGeofences()'s diff logic thinks there's nothing stale to remove on a fresh
+    // session, so geofences from a previous run pile up indefinitely instead of being
+    // replaced by the backend's current results.
+    await _clearGeofences();
   }
 
   @override

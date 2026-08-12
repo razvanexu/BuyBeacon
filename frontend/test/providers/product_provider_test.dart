@@ -140,4 +140,56 @@ void main() {
     expect(productProvider.products.length, 1);
     expect(productProvider.products.first.name, expectedNormalizedName);
   });
+
+  group('Category lookup and categorized add', () {
+    test('lookupCategory returns the category from the repository', () async {
+      // ARRANGE
+      when(
+        mockProductRepository.getProductCategory('ciocan'),
+      ).thenAnswer((_) async => 'hardware_store');
+
+      // ACT
+      final result = await productProvider.lookupCategory('ciocan');
+
+      // ASSERT
+      expect(result, 'hardware_store');
+    });
+
+    test('lookupCategory returns null when the product is uncategorized', () async {
+      // ARRANGE
+      when(
+        mockProductRepository.getProductCategory('unobtainium'),
+      ).thenAnswer((_) async => null);
+
+      // ACT
+      final result = await productProvider.lookupCategory('unobtainium');
+
+      // ASSERT
+      expect(result, isNull);
+    });
+
+    test('addProductWithCategory saves the category then adds the product', () async {
+      // ARRANGE
+      const productName = 'Ciocan';
+      when(
+        mockProductRepository.saveProductCategory(productName, 'hardware_store'),
+      ).thenAnswer((_) async {});
+      when(mockProductRepository.getAllProducts()).thenAnswer((_) async => []);
+      await productProvider.loadInitialData();
+      when(
+        mockProductRepository.getAllProducts(),
+      ).thenAnswer((_) async => [Product(id: 1, name: productName)]);
+
+      // ACT
+      await productProvider.addProductWithCategory(productName, 'hardware_store');
+
+      // ASSERT
+      verify(mockProductRepository.saveProductCategory(productName, 'hardware_store')).called(1);
+      verify(
+        mockProductRepository.addProduct(
+          argThat(predicate<Product>((p) => p.name == productName)),
+        ),
+      ).called(1);
+    });
+  });
 }
