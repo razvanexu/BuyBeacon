@@ -3,7 +3,6 @@ import 'dart:core';
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
 import 'package:buy_beacon/orchestrators/shopping_state.dart';
-import 'package:buy_beacon/services/geofence_service.dart';
 import 'package:buy_beacon/services/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
@@ -20,6 +19,13 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  // Markers within this radius are shown at all -- shops further away aren't
+  // relevant enough to clutter the map with. Kept in sync with the notification
+  // geofence radius (GeofenceService.addGeofences) only for the "yellow" tier;
+  // this outer radius is purely a display concern.
+  static const double _nearRadiusMeters = 500;
+  static const double _visibleRadiusMeters = 1000;
+
   GoogleMapController? _mapController;
 
   @override
@@ -44,7 +50,6 @@ class _MapScreenState extends State<MapScreen> {
 
   Set<Marker> _createShopMarkers(
     List<ShopLocation> allLocations,
-    Set<String> activeGeofenceIdentifiers,
     bg.Location? userLocation,
   ) {
     final Set<Marker> markers = {};
@@ -52,34 +57,37 @@ class _MapScreenState extends State<MapScreen> {
       return markers;
     }
 
-    final activeLocations = allLocations.where((shop) {
-      final identifier = 'shop_${shop.latitude}_${shop.longitude}';
-      return activeGeofenceIdentifiers.contains(identifier);
-    }).toList();
-
-    if (activeLocations.isEmpty) {
-      return markers;
-    }
-
     final userLatLng = LatLng(
       userLocation.coords.latitude,
       userLocation.coords.longitude,
     );
-    ShopLocation? closestShop;
-    double minDistance = double.infinity;
 
-    for (var shop in activeLocations) {
-      final shopLatLng = LatLng(shop.latitude, shop.longitude);
-      final distance = calculateDistance(userLatLng, shopLatLng);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestShop = shop;
-      }
+    // Distance-based, computed directly rather than relying on native geofence
+    // ENTER/EXIT events: those drive notifications (see NotificationDecisionService,
+    // unchanged) but are too slow/inconsistent to also drive map rendering -- on a
+    // fixed/simulated location they may never fire for most nearby shops at all.
+    final shopsWithDistance = allLocations
+        .map(
+          (shop) => (
+            shop: shop,
+            distance: calculateDistance(
+              userLatLng,
+              LatLng(shop.latitude, shop.longitude),
+            ),
+          ),
+        )
+        .where((entry) => entry.distance <= _visibleRadiusMeters)
+        .toList();
+
+    if (shopsWithDistance.isEmpty) {
+      return markers;
     }
 
-    for (var shop in activeLocations) {
-      final shopLatLng = LatLng(shop.latitude, shop.longitude);
-      final distance = calculateDistance(userLatLng, shopLatLng);
+    final closest = shopsWithDistance.reduce((a, b) => a.distance < b.distance ? a : b);
+
+    for (final entry in shopsWithDistance) {
+      final shop = entry.shop;
+      final distance = entry.distance;
       final distanceSnippet = '${(distance / 1000).toStringAsFixed(2)} km away';
 
       String productsDisplayString = shop.products.join(', ');
@@ -91,20 +99,24 @@ class _MapScreenState extends State<MapScreen> {
           : 'No products listed';
 
       final bool isClosest =
-          shop.latitude == closestShop?.latitude &&
-          shop.longitude == closestShop?.longitude;
+          shop.latitude == closest.shop.latitude &&
+          shop.longitude == closest.shop.longitude;
+
+      final double hue = isClosest
+          ? BitmapDescriptor.hueGreen
+          : (distance <= _nearRadiusMeters
+                ? BitmapDescriptor.hueYellow
+                : BitmapDescriptor.hueRed);
 
       markers.add(
         Marker(
           markerId: MarkerId(shop.name),
-          position: shopLatLng,
+          position: LatLng(shop.latitude, shop.longitude),
           infoWindow: InfoWindow(
             title: shop.name,
             snippet: '$distanceSnippet - $productSnippet',
           ),
-          icon: isClosest
-              ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen)
-              : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+          icon: BitmapDescriptor.defaultMarkerWithHue(hue),
         ),
       );
     }
@@ -114,10 +126,9 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     // The top-level consumer listens for user location changes.
-    return Consumer3<LocationService, GeofenceService, ShoppingOrchestrator>(
-      builder: (context, locationService, geofenceService, orchestrator, child) {
+    return Consumer2<LocationService, ShoppingOrchestrator>(
+      builder: (context, locationService, orchestrator, child) {
         final userLocation = locationService.userLocation;
-        final activeIdentifiers = geofenceService.activeGeofenceIdentifiers;
 
         // Show a loading indicator until we have the user's location.
         if (userLocation?.coords == null) {
@@ -145,7 +156,6 @@ class _MapScreenState extends State<MapScreen> {
 
             final Set<Marker> currentMarkers = _createShopMarkers(
               allShopLocations,
-              activeIdentifiers,
               userLocation,
             );
 

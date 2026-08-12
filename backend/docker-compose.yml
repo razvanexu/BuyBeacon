@@ -6,6 +6,25 @@ services:
       - SE_NODE_MAX_SESSIONS=1
     restart: unless-stopped
 
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=buybeacon
+      - POSTGRES_USER=${DB_USERNAME:-buybeacon}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    # Exposed to the host so a backend run outside Docker (e.g. from IntelliJ) can also
+    # reach it at localhost:5432 — matches the default in application.properties.
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-buybeacon} -d buybeacon" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   backend:
     build: .
     ports:
@@ -14,6 +33,15 @@ services:
       - SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_URL=jdbc:postgresql://postgres:5432/buybeacon
+      - DB_USERNAME=${DB_USERNAME:-buybeacon}
+      - DB_PASSWORD=${DB_PASSWORD}
     depends_on:
-      - selenium
+      selenium:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  postgres-data:
