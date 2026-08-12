@@ -10,17 +10,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.Duration;
+
 @Service
 public class GooglePlacesClient {
     private static  final Logger logger = LoggerFactory.getLogger(GooglePlacesClient.class);
 
     private static final String PLACES_API_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json";
+    private static final String NEARBY_SEARCH_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
     private final RestTemplate restTemplate;
     private final String apiKey;
 
     @Autowired
     public GooglePlacesClient(RestTemplateBuilder restTemplateBuilder, @Value("${google.maps.api.key}") String apiKey) {
-        this.restTemplate = restTemplateBuilder.build();
+        // Without explicit timeouts, a single stalled Places API call can hang forever and,
+        // combined with the bounded scrapingExecutor pool, starve every other concurrent
+        // geocoding/discovery call waiting for a free thread.
+        this.restTemplate = restTemplateBuilder
+                .connectTimeout(Duration.ofSeconds(10))
+                .readTimeout(Duration.ofSeconds(10))
+                .build();
         this.apiKey = apiKey;
     }
 
@@ -39,6 +48,30 @@ public class GooglePlacesClient {
 
         String url = builder.toUriString();
         logger.info("Accessing maps api with query {}", query);
+        return restTemplate.getForObject(url, JsonNode.class);
+    }
+
+    /**
+     * Searches for places of a given category (Places "type") near a location. Unlike
+     * findPlaces (Text Search), this doesn't match free text against place names/types —
+     * it directly asks for places of that type, so it's used for category-based shop
+     * discovery rather than geocoding a known shop name.
+     * <p>
+     * Uses rankby=distance instead of a radius: Nearby Search defaults to ranking by
+     * "prominence" (rating/popularity), which can rank a big-box store several km away above a
+     * small local shop right across the street. rankby=distance forces strict distance ordering
+     * so genuinely close matches surface reliably (Google requires omitting "radius" when
+     * "rankby=distance" is used).
+     */
+    public JsonNode findNearbyPlaces(String type, double latitude, double longitude) {
+        String url = UriComponentsBuilder.fromUriString(NEARBY_SEARCH_URL)
+                .queryParam("type", type)
+                .queryParam("location", latitude + "," + longitude)
+                .queryParam("rankby", "distance")
+                .queryParam("key", this.apiKey)
+                .toUriString();
+
+        logger.info("Accessing maps nearby-search api with type {}", type);
         return restTemplate.getForObject(url, JsonNode.class);
     }
 }

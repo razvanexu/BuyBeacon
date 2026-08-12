@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:developer';
 
+import 'package:buy_beacon/models/category_option.dart';
 import 'package:buy_beacon/models/product.dart';
 import 'package:buy_beacon/repositories/product_repository.dart';
 import 'package:flutter/cupertino.dart';
@@ -65,6 +66,26 @@ class ProductProvider extends ChangeNotifier {
         stackTrace: s,
       );
     }
+  }
+
+  /// Looks up the crowdsourced category for a product name. Returns null if
+  /// the product isn't categorized yet — the caller should prompt the user
+  /// with [getCategoryOptions] and then call [addProductWithCategory].
+  Future<String?> lookupCategory(String name) {
+    return _productRepository.getProductCategory(name);
+  }
+
+  /// The fixed, closed list of categories a user can pick from when a
+  /// product isn't categorized yet.
+  Future<List<CategoryOption>> getCategoryOptions() {
+    return _productRepository.getCategoryOptions();
+  }
+
+  /// Submits a category for a previously-uncategorized product, then adds it
+  /// via the normal [addProduct] flow.
+  Future<void> addProductWithCategory(String name, String category) async {
+    await _productRepository.saveProductCategory(name, category);
+    await addProduct(name);
   }
 
   Future<void> deleteProduct(int id) async {

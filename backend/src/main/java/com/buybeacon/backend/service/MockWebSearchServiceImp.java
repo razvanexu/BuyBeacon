@@ -13,10 +13,11 @@ public class MockWebSearchServiceImp implements WebSearchService{
     private static final Logger logger = LoggerFactory.getLogger(MockWebSearchServiceImp.class);
 
     @Override
-    public List<String> findShopLocations(String product) {
+    public List<DiscoveredShop> findShopLocations(String product, Double latitude, Double longitude) {
         logger.info("MOCK Web Search: Received request for product '{}'. Returning hardcoded list.", product);
-        return List.of("Mega Image Concept store (Mock)",
-                "Carrefour Market (Mock)",
-                "Lidl Discount (Mock)");
+        return List.of(
+                DiscoveredShop.withoutCoordinates("Mega Image Concept store (Mock)"),
+                DiscoveredShop.withoutCoordinates("Carrefour Market (Mock)"),
+                DiscoveredShop.withoutCoordinates("Lidl Discount (Mock)"));
     }
 }
