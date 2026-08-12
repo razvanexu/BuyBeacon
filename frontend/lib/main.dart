@@ -68,7 +68,7 @@ void main() async {
     ),
   );
 
-  geofenceService.initialize();
+  await geofenceService.initialize();
   log('[main] GeofenceService initialized.', name: 'MyAppMain');
 
   notificationDecisionService.initialize();

@@ -1,3 +1,4 @@
+import 'package:buy_beacon/models/category_option.dart';
 import 'package:buy_beacon/models/product.dart';
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/services/api_service.dart';
@@ -32,5 +33,17 @@ class ProductRepository {
       return Future.value([]);
     }
     return _apiService.findShops(products, latitude: latitude, longitude: longitude);
+  }
+
+  Future<String?> getProductCategory(String product) {
+    return _apiService.getProductCategory(product);
+  }
+
+  Future<void> saveProductCategory(String product, String category) {
+    return _apiService.saveProductCategory(product, category);
+  }
+
+  Future<List<CategoryOption>> getCategoryOptions() {
+    return _apiService.getCategoryOptions();
   }
 }

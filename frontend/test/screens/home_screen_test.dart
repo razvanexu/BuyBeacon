@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:buy_beacon/models/category_option.dart';
 import 'package:buy_beacon/models/product.dart';
 import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
 import 'package:buy_beacon/orchestrators/shopping_state.dart';
@@ -88,20 +89,58 @@ void main() {
     expect(find.text('Test Product'), findsOneWidget);
   });
 
-  testWidgets('tapping the add button should call addProduct on the provider', (
+  testWidgets(
+      'tapping the add button should add directly when the category is already known', (
       WidgetTester tester,) async {
     // ARRANGE
+    const productName = 'New Item';
+    when(mockProductProvider.lookupCategory(productName)).thenAnswer((_) async => 'supermarket');
     when(mockProductProvider.addProduct(any)).thenAnswer((_) async {});
     await tester.pumpWidget(createHomeScreen());
-    const productName = 'New Item';
 
     // ACT
     await tester.enterText(find.byType(TextField), productName);
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // ASSERT
     verify(mockProductProvider.addProduct(productName)).called(1);
+    expect(find.byType(SimpleDialog), findsNothing);
+  });
+
+  testWidgets(
+      'tapping the add button should show a category picker when the category is unknown, '
+      'and adding with the chosen category after selection', (WidgetTester tester,) async {
+    // ARRANGE
+    const productName = 'Unobtainium';
+    final options = [
+      CategoryOption(code: 'hardware_store', label: 'Bricolaj'),
+      CategoryOption(code: 'supermarket', label: 'Alimentar'),
+    ];
+    when(mockProductProvider.lookupCategory(productName)).thenAnswer((_) async => null);
+    when(mockProductProvider.getCategoryOptions()).thenAnswer((_) async => options);
+    when(
+      mockProductProvider.addProductWithCategory(any, any),
+    ).thenAnswer((_) async {});
+    await tester.pumpWidget(createHomeScreen());
+
+    // ACT
+    await tester.enterText(find.byType(TextField), productName);
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+
+    // ASSERT: dialog is showing with both options.
+    expect(find.byType(SimpleDialog), findsOneWidget);
+    expect(find.text('Bricolaj'), findsOneWidget);
+    expect(find.text('Alimentar'), findsOneWidget);
+
+    // ACT: pick one.
+    await tester.tap(find.text('Bricolaj'));
+    await tester.pumpAndSettle();
+
+    // ASSERT
+    verify(mockProductProvider.addProductWithCategory(productName, 'hardware_store')).called(1);
+    verifyNever(mockProductProvider.addProduct(any));
   });
 
   testWidgets('tapping the delete icon should call deleteProduct on the provider', (

@@ -4,17 +4,18 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
-import 'dart:ui' as _i8;
+import 'dart:ui' as _i9;
 
+import 'package:buy_beacon/models/category_option.dart' as _i6;
 import 'package:buy_beacon/models/product.dart' as _i4;
 import 'package:buy_beacon/models/shop_location.dart' as _i5;
 import 'package:buy_beacon/repositories/product_repository.dart' as _i2;
-import 'package:buy_beacon/services/geofence_service.dart' as _i6;
-import 'package:buy_beacon/services/location_service.dart' as _i9;
+import 'package:buy_beacon/services/geofence_service.dart' as _i7;
+import 'package:buy_beacon/services/location_service.dart' as _i10;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as _i7;
+    as _i8;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as _i10;
+    as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -82,23 +83,50 @@ class MockProductRepository extends _i1.Mock implements _i2.ProductRepository {
             ),
           )
           as _i3.Future<List<_i5.ShopLocation>>);
+
+  @override
+  _i3.Future<String?> getProductCategory(String? product) =>
+      (super.noSuchMethod(
+            Invocation.method(#getProductCategory, [product]),
+            returnValue: _i3.Future<String?>.value(),
+          )
+          as _i3.Future<String?>);
+
+  @override
+  _i3.Future<void> saveProductCategory(String? product, String? category) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveProductCategory, [product, category]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<List<_i6.CategoryOption>> getCategoryOptions() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCategoryOptions, []),
+            returnValue: _i3.Future<List<_i6.CategoryOption>>.value(
+              <_i6.CategoryOption>[],
+            ),
+          )
+          as _i3.Future<List<_i6.CategoryOption>>);
 }
 
 /// A class which mocks [GeofenceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
+class MockGeofenceService extends _i1.Mock implements _i7.GeofenceService {
   MockGeofenceService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Stream<_i7.GeofenceEvent> get onGeofenceEvent =>
+  _i3.Stream<_i8.GeofenceEvent> get onGeofenceEvent =>
       (super.noSuchMethod(
             Invocation.getter(#onGeofenceEvent),
-            returnValue: _i3.Stream<_i7.GeofenceEvent>.empty(),
+            returnValue: _i3.Stream<_i8.GeofenceEvent>.empty(),
           )
-          as _i3.Stream<_i7.GeofenceEvent>);
+          as _i3.Stream<_i8.GeofenceEvent>);
 
   @override
   Map<String, _i5.ShopLocation> get geofenceData =>
@@ -122,10 +150,13 @@ class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
           as bool);
 
   @override
-  void initialize() => super.noSuchMethod(
-    Invocation.method(#initialize, []),
-    returnValueForMissingStub: null,
-  );
+  _i3.Future<void> initialize() =>
+      (super.noSuchMethod(
+            Invocation.method(#initialize, []),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
 
   @override
   void dispose() => super.noSuchMethod(
@@ -143,13 +174,13 @@ class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
           as _i3.Future<void>);
 
   @override
-  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i9.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i9.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -164,7 +195,7 @@ class MockGeofenceService extends _i1.Mock implements _i6.GeofenceService {
 /// A class which mocks [LocationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocationService extends _i1.Mock implements _i9.LocationService {
+class MockLocationService extends _i1.Mock implements _i10.LocationService {
   MockLocationService() {
     _i1.throwOnMissingStub(this);
   }
@@ -176,7 +207,7 @@ class MockLocationService extends _i1.Mock implements _i9.LocationService {
 
   @override
   _i3.Future<void> initialize({
-    required _i10.AndroidNotificationChannel? channel,
+    required _i11.AndroidNotificationChannel? channel,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#initialize, [], {#channel: channel}),
@@ -186,21 +217,21 @@ class MockLocationService extends _i1.Mock implements _i9.LocationService {
           as _i3.Future<void>);
 
   @override
-  _i3.Future<_i7.Location?> getCurrentLocation() =>
+  _i3.Future<_i8.Location?> getCurrentLocation() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentLocation, []),
-            returnValue: _i3.Future<_i7.Location?>.value(),
+            returnValue: _i3.Future<_i8.Location?>.value(),
           )
-          as _i3.Future<_i7.Location?>);
+          as _i3.Future<_i8.Location?>);
 
   @override
-  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i9.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i9.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );

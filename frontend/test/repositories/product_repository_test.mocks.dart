@@ -5,6 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
+import 'package:buy_beacon/models/category_option.dart' as _i8;
 import 'package:buy_beacon/models/product.dart' as _i5;
 import 'package:buy_beacon/models/shop_location.dart' as _i7;
 import 'package:buy_beacon/services/api_service.dart' as _i6;
@@ -99,4 +100,31 @@ class MockApiService extends _i1.Mock implements _i6.ApiService {
             ),
           )
           as _i4.Future<List<_i7.ShopLocation>>);
+
+  @override
+  _i4.Future<String?> getProductCategory(String? product) =>
+      (super.noSuchMethod(
+            Invocation.method(#getProductCategory, [product]),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<void> saveProductCategory(String? product, String? category) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveProductCategory, [product, category]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<List<_i8.CategoryOption>> getCategoryOptions() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCategoryOptions, []),
+            returnValue: _i4.Future<List<_i8.CategoryOption>>.value(
+              <_i8.CategoryOption>[],
+            ),
+          )
+          as _i4.Future<List<_i8.CategoryOption>>);
 }

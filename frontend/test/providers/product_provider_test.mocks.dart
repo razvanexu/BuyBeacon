@@ -5,6 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
+import 'package:buy_beacon/models/category_option.dart' as _i6;
 import 'package:buy_beacon/models/product.dart' as _i4;
 import 'package:buy_beacon/models/shop_location.dart' as _i5;
 import 'package:buy_beacon/repositories/product_repository.dart' as _i2;
@@ -75,4 +76,31 @@ class MockProductRepository extends _i1.Mock implements _i2.ProductRepository {
             ),
           )
           as _i3.Future<List<_i5.ShopLocation>>);
+
+  @override
+  _i3.Future<String?> getProductCategory(String? product) =>
+      (super.noSuchMethod(
+            Invocation.method(#getProductCategory, [product]),
+            returnValue: _i3.Future<String?>.value(),
+          )
+          as _i3.Future<String?>);
+
+  @override
+  _i3.Future<void> saveProductCategory(String? product, String? category) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveProductCategory, [product, category]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<List<_i6.CategoryOption>> getCategoryOptions() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCategoryOptions, []),
+            returnValue: _i3.Future<List<_i6.CategoryOption>>.value(
+              <_i6.CategoryOption>[],
+            ),
+          )
+          as _i3.Future<List<_i6.CategoryOption>>);
 }
