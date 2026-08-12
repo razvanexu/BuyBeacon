@@ -23,6 +23,12 @@ class NotificationService {
     final androidPlugin = _localNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
+    final granted = await androidPlugin?.requestNotificationsPermission();
+    log(
+      '[NotificationService] POST_NOTIFICATIONS permission granted: $granted',
+      name: 'NotificationService',
+    );
+
     for (final channel in channels) {
       await androidPlugin?.createNotificationChannel(channel);
     }
