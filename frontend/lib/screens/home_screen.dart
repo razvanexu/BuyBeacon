@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:buy_beacon/models/category_option.dart';
 import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
 import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
@@ -189,32 +190,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _addProduct() {
+  Future<void> _addProduct() async {
     log('[1] _addProduct called.', name: 'HomeScreen');
-    if (_textController.text.isEmpty) {
+    final name = _textController.text;
+    if (name.isEmpty) {
       log('[!] Text field is empty. Aborting.', name: 'HomeScreen');
       return;
     }
     try {
       log('[2] Getting ProductProvider.', name: 'HomeScreen');
-
       final provider = Provider.of<ProductProvider>(context, listen: false);
-      log(
-        '[3] ProductProvider found. Calling provider.addProduct().',
-        name: 'HomeScreen',
-      );
-      provider.addProduct(_textController.text).catchError((e, s) {
-        log(
-          '[!] Error during provider.addProduct() future.',
-          name: 'HomeScreen',
-          error: e,
-          stackTrace: s,
-        );
-      });
-      log('[4] Clearing text controller.', name: 'HomeScreen');
+
+      log('[3] Looking up category for "$name".', name: 'HomeScreen');
+      final category = await provider.lookupCategory(name);
+
+      if (category != null) {
+        log('[4] Category known ("$category"). Adding product directly.', name: 'HomeScreen');
+        await provider.addProduct(name);
+      } else {
+        log('[4] Category unknown. Prompting user to pick one.', name: 'HomeScreen');
+        if (!mounted) return;
+        final options = await provider.getCategoryOptions();
+        if (!mounted) return;
+        final selected = await _showCategoryPicker(context, options);
+        if (selected != null) {
+          await provider.addProductWithCategory(name, selected.code);
+        } else {
+          log('[!] User dismissed category picker without selecting.', name: 'HomeScreen');
+          return;
+        }
+      }
+
+      log('[5] Clearing text controller.', name: 'HomeScreen');
       _textController.clear();
     } catch (e, s) {
-      // This will catch an error if Provider.of fails or if any other synchronous error occurs.
       log(
         '[!] CRITICAL ERROR in _addProduct.',
         name: 'HomeScreen',
@@ -222,5 +231,27 @@ class _HomeScreenState extends State<HomeScreen> {
         stackTrace: s,
       );
     }
+  }
+
+  Future<CategoryOption?> _showCategoryPicker(
+    BuildContext context,
+    List<CategoryOption> options,
+  ) {
+    return showDialog<CategoryOption>(
+      context: context,
+      builder: (dialogContext) {
+        return SimpleDialog(
+          title: const Text('Ce fel de magazin vinde acest produs?'),
+          children: options
+              .map(
+                (option) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(dialogContext, option),
+                  child: Text(option.label),
+                ),
+              )
+              .toList(),
+        );
+      },
+    );
   }
 }

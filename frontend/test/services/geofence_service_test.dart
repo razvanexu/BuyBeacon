@@ -61,6 +61,25 @@ void main() {
   });
 
   group('GeofenceService', () {
+    test('initialize should clear all native geofences from a previous session', () async {
+      //ARRANGE
+      final List<MethodCall> methodCallLog = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            methodCallLog.add(methodCall);
+            return true;
+          });
+
+      //ACT
+      await geofenceService.initialize();
+
+      //ASSERT
+      // Native geofences persist across app restarts, but the in-memory diff cache
+      // (_geofenceData) doesn't -- without an explicit clear on startup, geofences from a
+      // previous session would never be detected as stale and would pile up indefinitely.
+      expect(methodCallLog.map((call) => call.method), contains('removeGeofences'));
+    });
+
     test('addGeofences should clear old geofences and add new ones', () async {
       //ARRANGE
       final locations = [
