@@ -27,6 +27,10 @@ class LocationService extends ChangeNotifier {
         desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
         distanceFilter: 0.0,
         //distance in meters (horizontally) from the location
+        locationUpdateInterval: 3000,
+        fastestLocationUpdateInterval: 1000,
+        //without these, Android's default provider batches updates far
+        //slower than distanceFilter:0 implies, so map pin colors lag reality
         stopOnTerminate: false,
         //Continue tracking after the app is terminated
         startOnBoot: true,
