@@ -7,6 +7,9 @@ import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/repositories/product_repository.dart';
 import 'package:buy_beacon/services/geofence_service.dart';
 import 'package:buy_beacon/services/location_service.dart';
+import 'package:buy_beacon/utils/debug_file_logger.dart';
+import 'package:buy_beacon/utils/location_utils.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class ShoppingOrchestrator {
   final ProductProvider _productProvider;
@@ -27,6 +30,14 @@ class ShoppingOrchestrator {
   static const Duration _initialRetryDelay = Duration(seconds: 30);
   static const Duration _maxRetryDelay = Duration(hours: 1);
 
+  // Re-query the backend as the user roams, not just when the product list
+  // changes -- otherwise shops that become newly relevant (or irrelevant)
+  // while walking/driving are never discovered/dropped until the next edit.
+  LatLng? _lastFetchLocation;
+  DateTime? _lastFetchTime;
+  static const double _refetchDistanceMeters = 300;
+  static const Duration _minRefetchInterval = Duration(seconds: 30);
+
   ShoppingOrchestrator({
     required ProductProvider productProvider,
     required ProductRepository productRepository,
@@ -37,11 +48,45 @@ class ShoppingOrchestrator {
        _geofenceService = geofenceService,
        _locationService = locationService {
     _productProvider.onProductsChanged = _onProductsChanged;
+    _locationService.addListener(_onLocationChanged);
   }
 
   Future<void> _onProductsChanged() async {
     _cancelRetryTimer();
     await _fetchProductsAndShops();
+  }
+
+  void _onLocationChanged() {
+    if (_productProvider.products.isEmpty || _state.isLoading) return;
+
+    final currentLocation = _locationService.userLocation;
+    if (currentLocation == null) return;
+    final currentLatLng = LatLng(
+      currentLocation.coords.latitude,
+      currentLocation.coords.longitude,
+    );
+
+    final now = DateTime.now();
+    if (_lastFetchTime != null && now.difference(_lastFetchTime!) < _minRefetchInterval) {
+      return;
+    }
+
+    final distanceMoved = _lastFetchLocation == null
+        ? null
+        : calculateDistance(_lastFetchLocation!, currentLatLng);
+    final movedFar = distanceMoved == null || distanceMoved >= _refetchDistanceMeters;
+    if (!movedFar) return;
+
+    log(
+      '[ShoppingOrchestrator] User moved >= ${_refetchDistanceMeters}m since last fetch. Refetching shops.',
+      name: 'ShoppingOrchestrator',
+    );
+    DebugFileLogger().log(
+      'ShoppingOrchestrator._onLocationChanged triggering refetch, '
+      'distanceMoved=${distanceMoved?.toStringAsFixed(1)}m',
+    );
+    _cancelRetryTimer();
+    _fetchProductsAndShops();
   }
 
   Future<void> _fetchProductsAndShops() async {
@@ -73,6 +118,14 @@ class ShoppingOrchestrator {
       final currentLocation =
           _locationService.userLocation ?? await _locationService.getCurrentLocation();
 
+      if (currentLocation != null) {
+        _lastFetchLocation = LatLng(
+          currentLocation.coords.latitude,
+          currentLocation.coords.longitude,
+        );
+        _lastFetchTime = DateTime.now();
+      }
+
       final shopLocations = await _productRepository.findShopsForProducts(
         products.toList(),
         latitude: currentLocation?.coords.latitude,
@@ -81,6 +134,11 @@ class ShoppingOrchestrator {
       log(
         '[ShoppingOrchestrator] Fetched ${shopLocations.length} shop locations. Now adding geofences.',
         name: 'ShoppingOrchestrator',
+      );
+      DebugFileLogger().log(
+        'ShoppingOrchestrator._fetchProductsAndShops fetched ${shopLocations.length} shops '
+        'at lat=${currentLocation?.coords.latitude} lng=${currentLocation?.coords.longitude}: '
+        '${shopLocations.map((s) => s.name).join(', ')}',
       );
       await _geofenceService.addGeofences(shopLocations);
 
@@ -156,5 +214,6 @@ class ShoppingOrchestrator {
     _controller.close();
     _cancelRetryTimer();
     _productProvider.onProductsChanged = null;
+    _locationService.removeListener(_onLocationChanged);
   }
 }
