@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:buy_beacon/utils/debug_file_logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -20,6 +22,9 @@ class LocationService extends ChangeNotifier {
   Future<void> initialize({required AndroidNotificationChannel channel}) async {
     log('[LocationService] Initializing...', name: 'LocationService');
     bg.BackgroundGeolocation.onLocation(_onLocation);
+    bg.BackgroundGeolocation.onMotionChange(_onMotionChange);
+    bg.BackgroundGeolocation.onActivityChange(_onActivityChange);
+    bg.BackgroundGeolocation.onProviderChange(_onProviderChange);
 
     //listen to geofence events
     bg.BackgroundGeolocation.ready(
@@ -35,7 +40,10 @@ class LocationService extends ChangeNotifier {
         //Continue tracking after the app is terminated
         startOnBoot: true,
         //Restart background tracking after devise reboot
-        logLevel: kDebugMode ? bg.Config.LOG_LEVEL_VERBOSE : bg.Config.LOG_LEVEL_ERROR,
+        // TEMPORARY: forced VERBOSE even in release to diagnose why the
+        // plugin's motion-detection never fires onActivityChange/onMotionChange
+        // on this device -- revert to `kDebugMode ? VERBOSE : ERROR` once resolved.
+        logLevel: bg.Config.LOG_LEVEL_VERBOSE,
         geofenceProximityRadius: 1000,
         //default radius in meters for geofencing
         geofenceInitialTriggerEntry: true,
@@ -67,6 +75,44 @@ class LocationService extends ChangeNotifier {
           name: 'LocationService',
         );
       }
+
+      // On some devices the plugin's automatic stationary/moving detection
+      // (accelerometer + Activity Recognition) never fires a single
+      // onActivityChange/onMotionChange event, even with all permissions
+      // granted and no battery restrictions -- confirmed via on-device
+      // debug logging (see DebugFileLogger), leaving it permanently stuck
+      // in the "stationary" state and only ever answering one-shot location
+      // requests. Forcing "moving" here bypasses that broken auto-detection
+      // entirely so continuous GPS sampling actually runs.
+      bg.BackgroundGeolocation.changePace(true);
+      DebugFileLogger().log('LocationService.initialize forced changePace(true)');
+
+      _startNativeLogDumping();
+    });
+  }
+
+  DateTime? _lastNativeLogDump;
+
+  // Our own DebugFileLogger only sees events the plugin already decided to
+  // fire; it can't say WHY the plugin's motion engine stays silent. The
+  // plugin's own native log (bg.Logger) records that reasoning (activity
+  // recognition results, stationary/moving transitions, provider requests)
+  // but defaults to ERROR-only in release. Poll it periodically and mirror
+  // new entries into DebugFileLogger so it's retrievable via the same `adb
+  // pull` used for everything else, without needing a live adb session.
+  void _startNativeLogDumping() {
+    _lastNativeLogDump = DateTime.now();
+    Timer.periodic(const Duration(seconds: 45), (_) async {
+      final since = _lastNativeLogDump!;
+      _lastNativeLogDump = DateTime.now();
+      try {
+        final nativeLog = await bg.Logger.getLog(bg.SQLQuery(start: since));
+        if (nativeLog.trim().isNotEmpty) {
+          await DebugFileLogger().log('===== NATIVE SDK LOG (since $since) =====\n$nativeLog');
+        }
+      } catch (e) {
+        await DebugFileLogger().log('Native log dump failed: $e');
+      }
     });
   }
 
@@ -77,8 +123,33 @@ class LocationService extends ChangeNotifier {
         name: 'LocationService',
       );
     }
+    DebugFileLogger().log(
+      'LocationService._onLocation lat=${location.coords.latitude} '
+      'lng=${location.coords.longitude} accuracy=${location.coords.accuracy}',
+    );
     _userLocation = location;
     notifyListeners();
+  }
+
+  void _onMotionChange(bg.Location location) {
+    DebugFileLogger().log(
+      'LocationService._onMotionChange isMoving=${location.isMoving} '
+      'lat=${location.coords.latitude} lng=${location.coords.longitude}',
+    );
+  }
+
+  void _onActivityChange(bg.ActivityChangeEvent event) {
+    DebugFileLogger().log(
+      'LocationService._onActivityChange activity=${event.activity} '
+      'confidence=${event.confidence}',
+    );
+  }
+
+  void _onProviderChange(bg.ProviderChangeEvent event) {
+    DebugFileLogger().log(
+      'LocationService._onProviderChange enabled=${event.enabled} '
+      'status=${event.status} gps=${event.gps} network=${event.network}',
+    );
   }
 
   Future<bg.Location?> getCurrentLocation() async {

@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/services/location_service.dart';
+import 'package:buy_beacon/utils/debug_file_logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 
@@ -173,6 +174,9 @@ class GeofenceService extends ChangeNotifier {
         name: 'GeofenceService',
       );
     }
+    DebugFileLogger().log(
+      'GeofenceService._onGeofence id=${event.identifier} action=${event.action}',
+    );
     _geofenceEventController.add(event);
     if (event.action == 'ENTER') {
       _activeGeofenceIdentifiers.add(event.identifier);
