@@ -36,6 +36,7 @@ services:
       - DB_URL=jdbc:postgresql://postgres:5432/buybeacon
       - DB_USERNAME=${DB_USERNAME:-buybeacon}
       - DB_PASSWORD=${DB_PASSWORD}
+      - DEBUG_LOG_TOKEN=${DEBUG_LOG_TOKEN:-}
     depends_on:
       selenium:
         condition: service_started
