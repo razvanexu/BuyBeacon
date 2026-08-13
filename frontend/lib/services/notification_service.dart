@@ -52,7 +52,7 @@ class NotificationService {
 
     try {
       await _localNotificationsPlugin.initialize(
-        initializationSettings,
+        settings: initializationSettings,
         onDidReceiveNotificationResponse:
             onNotificationTap ??
             (NotificationResponse response) async {
@@ -102,10 +102,10 @@ class NotificationService {
 
     try {
       await _localNotificationsPlugin.show(
-        DateTime.now().millisecondsSinceEpoch % 2147483647,
-        title,
-        body,
-        notificationDetails,
+        id: DateTime.now().millisecondsSinceEpoch % 2147483647,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: payload,
       );
       log(

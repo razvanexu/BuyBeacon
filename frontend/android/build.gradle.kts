@@ -1,14 +1,7 @@
 allprojects {
-    ext{
-        set("appCompatVersion", "1.4.2")
-        set("playServicesLocationVersion", "21.3.0")
-    }
     repositories {
         google()
         mavenCentral()
-        maven(url = "${project(":flutter_background_geolocation").projectDir}/libs")
-        maven(url = "https://developer.huawei.com/repo/")
-        maven(url = "${project(":background_fetch").projectDir}/libs")
     }
 }
 
