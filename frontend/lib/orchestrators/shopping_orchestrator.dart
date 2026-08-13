@@ -61,10 +61,7 @@ class ShoppingOrchestrator {
 
     final currentLocation = _locationService.userLocation;
     if (currentLocation == null) return;
-    final currentLatLng = LatLng(
-      currentLocation.coords.latitude,
-      currentLocation.coords.longitude,
-    );
+    final currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude);
 
     final now = DateTime.now();
     if (_lastFetchTime != null && now.difference(_lastFetchTime!) < _minRefetchInterval) {
@@ -119,17 +116,14 @@ class ShoppingOrchestrator {
           _locationService.userLocation ?? await _locationService.getCurrentLocation();
 
       if (currentLocation != null) {
-        _lastFetchLocation = LatLng(
-          currentLocation.coords.latitude,
-          currentLocation.coords.longitude,
-        );
+        _lastFetchLocation = LatLng(currentLocation.latitude, currentLocation.longitude);
         _lastFetchTime = DateTime.now();
       }
 
       final shopLocations = await _productRepository.findShopsForProducts(
         products.toList(),
-        latitude: currentLocation?.coords.latitude,
-        longitude: currentLocation?.coords.longitude,
+        latitude: currentLocation?.latitude,
+        longitude: currentLocation?.longitude,
       );
       log(
         '[ShoppingOrchestrator] Fetched ${shopLocations.length} shop locations. Now adding geofences.',
@@ -137,7 +131,7 @@ class ShoppingOrchestrator {
       );
       DebugFileLogger().log(
         'ShoppingOrchestrator._fetchProductsAndShops fetched ${shopLocations.length} shops '
-        'at lat=${currentLocation?.coords.latitude} lng=${currentLocation?.coords.longitude}: '
+        'at lat=${currentLocation?.latitude} lng=${currentLocation?.longitude}: '
         '${shopLocations.map((s) => s.name).join(', ')}',
       );
       await _geofenceService.addGeofences(shopLocations);

@@ -1,11 +1,15 @@
-import 'dart:async';
 import 'dart:developer';
 
+import 'package:buy_beacon/models/app_location.dart';
 import 'package:buy_beacon/utils/debug_file_logger.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:tracelet/tracelet.dart' as tl;
 
+/// Wraps the Tracelet plugin. This is the only file in the app allowed to
+/// import `package:tracelet` -- everything else depends on [AppLocation]
+/// instead, so swapping the underlying tracking plugin again only touches
+/// this file (and [GeofenceService]).
 class LocationService extends ChangeNotifier {
   //Singleton Instance
   static final LocationService _instance = LocationService._internal();
@@ -14,154 +18,118 @@ class LocationService extends ChangeNotifier {
 
   LocationService._internal();
 
-  bg.Location? _userLocation;
+  AppLocation? _userLocation;
 
-  bg.Location? get userLocation => _userLocation;
+  AppLocation? get userLocation => _userLocation;
+
+  AppLocation _toAppLocation(tl.Location location) => AppLocation(
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+    accuracy: location.coords.accuracy,
+    isMoving: location.isMoving,
+  );
 
   //geolocation plugin init
   Future<void> initialize({required AndroidNotificationChannel channel}) async {
     log('[LocationService] Initializing...', name: 'LocationService');
-    bg.BackgroundGeolocation.onLocation(_onLocation);
-    bg.BackgroundGeolocation.onMotionChange(_onMotionChange);
-    bg.BackgroundGeolocation.onActivityChange(_onActivityChange);
-    bg.BackgroundGeolocation.onProviderChange(_onProviderChange);
+    tl.Tracelet.onLocation(_onLocation);
 
-    //listen to geofence events
-    bg.BackgroundGeolocation.ready(
-      bg.Config(
-        desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-        distanceFilter: 0.0,
-        //distance in meters (horizontally) from the location
-        locationUpdateInterval: 3000,
-        fastestLocationUpdateInterval: 1000,
-        //without these, Android's default provider batches updates far
-        //slower than distanceFilter:0 implies, so map pin colors lag reality
-        stopOnTerminate: false,
-        //Continue tracking after the app is terminated
-        startOnBoot: true,
-        //Restart background tracking after devise reboot
-        // TEMPORARY: forced VERBOSE even in release to diagnose why the
-        // plugin's motion-detection never fires onActivityChange/onMotionChange
-        // on this device -- revert to `kDebugMode ? VERBOSE : ERROR` once resolved.
-        logLevel: bg.Config.LOG_LEVEL_VERBOSE,
-        geofenceProximityRadius: 1000,
-        //default radius in meters for geofencing
-        geofenceInitialTriggerEntry: true,
-        stopTimeout: 1,
-        showsBackgroundLocationIndicator: true,
-        //debug sounds/notifications only in debug builds
-        debug: kDebugMode,
-        notification: bg.Notification(
-          // ic_launcher is a full-color launcher icon, which Android rejects for
-          // foreground-service notifications ("Invalid notification (no valid small icon)").
-          // Notification small icons must be a flat, alpha-masked silhouette instead.
-          smallIcon: 'drawable/ic_stat_notify',
-          channelId: channel.id,
-          channelName: channel.name,
-          title: 'BuyBeacon is running',
-          text: 'Monitoring for nearby stores.',
-        ),
-      ),
-    ).then((bg.State state) {
+    // Must request (and get at least "when in use") location permission
+    // *before* calling ready()/start(): on Android 14+, starting Tracelet's
+    // location-type foreground service without the permission already
+    // granted makes the OS reject the notification and force-kill the whole
+    // app (CannotPostForegroundServiceNotificationException), not just log
+    // an error. requestLocationAuthorization() escalates automatically
+    // (notDetermined -> when-in-use -> always) across repeated calls.
+    final authStatus = await tl.Tracelet.requestLocationAuthorization();
+    log('[LocationService] Location authorization status: $authStatus', name: 'LocationService');
+    await tl.Tracelet.requestNotificationAuthorization();
+
+    if (authStatus == tl.AuthorizationStatus.denied) {
       log(
-        '[LocationService] BackgroundGeolocation.ready complete. State enabled: ${state.enabled}',
+        '[LocationService] Location permission denied; skipping Tracelet startup to avoid the '
+        'foreground-service crash. Tracking will stay off until permission is granted.',
+        name: 'LocationService',
+      );
+      DebugFileLogger().log(
+        'LocationService.initialize aborted: location permission denied ($authStatus)',
+      );
+      return;
+    }
+
+    try {
+      final state = await tl.Tracelet.ready(
+        tl.Config.balanced().copyWith(
+          geo: const tl.GeoConfig(desiredAccuracy: tl.DesiredAccuracy.high, distanceFilter: 0.0),
+          app: const tl.AppConfig(stopOnTerminate: false, startOnBoot: true),
+          android: tl.AndroidConfig(
+            // Android's default provider batches updates far slower than
+            // distanceFilter:0 implies without these explicit intervals, so
+            // map pin colors would lag reality.
+            locationUpdateInterval: 3000,
+            fastestLocationUpdateInterval: 1000,
+            foregroundService: const tl.ForegroundServiceConfig(
+              notificationTitle: 'BuyBeacon is running',
+              notificationText: 'Monitoring for nearby stores.',
+              // Without an explicit flat/alpha-masked icon, Android rejects the
+              // foreground-service notification outright (mipmap/ic_launcher is
+              // full-color, invalid for a status-bar icon) and force-kills the
+              // app with CannotPostForegroundServiceNotificationException --
+              // same underlying issue hit with the previous plugin.
+              notificationSmallIcon: 'ic_stat_notify',
+            ),
+          ),
+          logger: tl.LoggerConfig(debug: kDebugMode, logLevel: tl.LogLevel.error),
+        ),
+      );
+      log(
+        '[LocationService] Tracelet.ready complete. State enabled: ${state.enabled}',
         name: 'LocationService',
       );
       if (!state.enabled) {
-        //start tracking service
-        bg.BackgroundGeolocation.start();
-        log(
-          '[LocationService] BackgroundGeolocation.start() called and completed.',
-          name: 'LocationService',
-        );
+        await tl.Tracelet.start();
+        log('[LocationService] Tracelet.start() called and completed.', name: 'LocationService');
       }
+    } catch (e) {
+      log('[LocationService] Tracelet ready/start failed: $e', name: 'LocationService', error: e);
+      DebugFileLogger().log('LocationService.initialize ready/start failed: $e');
+      return;
+    }
 
-      // On some devices the plugin's automatic stationary/moving detection
-      // (accelerometer + Activity Recognition) never fires a single
-      // onActivityChange/onMotionChange event, even with all permissions
-      // granted and no battery restrictions -- confirmed via on-device
-      // debug logging (see DebugFileLogger), leaving it permanently stuck
-      // in the "stationary" state and only ever answering one-shot location
-      // requests. Forcing "moving" here bypasses that broken auto-detection
-      // entirely so continuous GPS sampling actually runs.
-      bg.BackgroundGeolocation.changePace(true);
-      DebugFileLogger().log('LocationService.initialize forced changePace(true)');
-
-      _startNativeLogDumping();
-    });
+    // A safety net: on some devices/OEMs the plugin's automatic
+    // stationary/moving detection can fail to trigger continuous tracking.
+    // Forcing "moving" here bypasses that so continuous GPS sampling runs
+    // regardless. Awaited and logged (not fire-and-forget) so a failure is
+    // visible instead of silently swallowed.
+    try {
+      await tl.Tracelet.changePace(true);
+    } catch (e) {
+      log('[LocationService] changePace(true) failed: $e', name: 'LocationService', error: e);
+      DebugFileLogger().log('LocationService.initialize changePace(true) failed: $e');
+    }
   }
 
-  DateTime? _lastNativeLogDump;
-
-  // Our own DebugFileLogger only sees events the plugin already decided to
-  // fire; it can't say WHY the plugin's motion engine stays silent. The
-  // plugin's own native log (bg.Logger) records that reasoning (activity
-  // recognition results, stationary/moving transitions, provider requests)
-  // but defaults to ERROR-only in release. Poll it periodically and mirror
-  // new entries into DebugFileLogger so it's retrievable via the same `adb
-  // pull` used for everything else, without needing a live adb session.
-  void _startNativeLogDumping() {
-    _lastNativeLogDump = DateTime.now();
-    Timer.periodic(const Duration(seconds: 45), (_) async {
-      final since = _lastNativeLogDump!;
-      _lastNativeLogDump = DateTime.now();
-      try {
-        final nativeLog = await bg.Logger.getLog(bg.SQLQuery(start: since));
-        if (nativeLog.trim().isNotEmpty) {
-          await DebugFileLogger().log('===== NATIVE SDK LOG (since $since) =====\n$nativeLog');
-        }
-      } catch (e) {
-        await DebugFileLogger().log('Native log dump failed: $e');
-      }
-    });
-  }
-
-  void _onLocation(bg.Location location) {
+  void _onLocation(tl.Location location) {
     if (kDebugMode) {
       log(
         'Location updated: ${location.coords.latitude}, ${location.coords.longitude}',
         name: 'LocationService',
       );
     }
+    _userLocation = _toAppLocation(location);
     DebugFileLogger().log(
-      'LocationService._onLocation lat=${location.coords.latitude} '
-      'lng=${location.coords.longitude} accuracy=${location.coords.accuracy}',
+      'LocationService._onLocation lat=${_userLocation!.latitude} '
+      'lng=${_userLocation!.longitude} accuracy=${_userLocation!.accuracy}',
     );
-    _userLocation = location;
     notifyListeners();
   }
 
-  void _onMotionChange(bg.Location location) {
-    DebugFileLogger().log(
-      'LocationService._onMotionChange isMoving=${location.isMoving} '
-      'lat=${location.coords.latitude} lng=${location.coords.longitude}',
-    );
-  }
-
-  void _onActivityChange(bg.ActivityChangeEvent event) {
-    DebugFileLogger().log(
-      'LocationService._onActivityChange activity=${event.activity} '
-      'confidence=${event.confidence}',
-    );
-  }
-
-  void _onProviderChange(bg.ProviderChangeEvent event) {
-    DebugFileLogger().log(
-      'LocationService._onProviderChange enabled=${event.enabled} '
-      'status=${event.status} gps=${event.gps} network=${event.network}',
-    );
-  }
-
-  Future<bg.Location?> getCurrentLocation() async {
+  Future<AppLocation?> getCurrentLocation() async {
     log('[LocationService] getCurrentLocation() called.', name: 'LocationService');
     try {
-      final location = await bg.BackgroundGeolocation.getCurrentPosition(
-        persist: true,
-        samples: 1,
-        timeout: 5000,
-      );
+      final location = await tl.Tracelet.getCurrentPosition(persist: true, samples: 1, timeout: 5);
       _onLocation(location);
-      return location;
+      return _userLocation;
     } catch (e) {
       log('Error getting current location: $e', name: 'LocationService', error: e);
       return null;
