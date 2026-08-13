@@ -45,8 +45,8 @@ class ApiService {
     //create and encode request body to json
     final body = jsonEncode({
       'products': productNames,
-      if (latitude != null) 'latitude': latitude,
-      if (longitude != null) 'longitude': longitude,
+      'latitude': ?latitude,
+      'longitude': ?longitude,
     });
 
     log('Sending POST ${url.path} with ${productNames.length} product(s).', name: 'ApiService');
