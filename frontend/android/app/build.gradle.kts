@@ -7,9 +7,6 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val backgroundGeolocation = project(":flutter_background_geolocation")
-apply { from("${backgroundGeolocation.projectDir}/background_geolocation.gradle") }
-
 // Secrets such as the Google Maps API key are kept out of source control in
 // local.properties (already gitignored) and injected as a manifest placeholder.
 val localProperties = Properties()
@@ -27,7 +24,7 @@ android {
     namespace = "com.buy_beacon.frontend"
     compileSdk = flutter.compileSdkVersion
 //    ndkVersion = flutter.ndkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
