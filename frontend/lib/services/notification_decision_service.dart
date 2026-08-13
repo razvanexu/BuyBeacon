@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:buy_beacon/models/app_geofence_event.dart';
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/services/geofence_service.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../utils/location_utils.dart';
@@ -45,8 +45,8 @@ class NotificationDecisionService {
     _notificationDebouncetimer?.cancel();
   }
 
-  void _onGeofenceEvent(bg.GeofenceEvent event) {
-    if (event.action == 'ENTER') {
+  void _onGeofenceEvent(AppGeofenceEvent event) {
+    if (event.action == GeofenceAction.enter) {
       _pendingNotificationGeofences.add(event.identifier);
       _notificationDebouncetimer?.cancel();
       _notificationDebouncetimer = Timer(duration, _processPendingNotifications);
@@ -54,7 +54,7 @@ class NotificationDecisionService {
         '[NotificationDecisionService] Added ${event.identifier} to pending and started 15s timer.',
         name: 'NotificationDecisionService',
       );
-    } else if (event.action == 'EXIT') {
+    } else if (event.action == GeofenceAction.exit) {
       _pendingNotificationGeofences.remove(event.identifier);
     }
   }
@@ -67,7 +67,7 @@ class NotificationDecisionService {
     if (_pendingNotificationGeofences.isEmpty) return;
 
     final currentLocation = await _locationService.getCurrentLocation();
-    if (currentLocation?.coords == null) {
+    if (currentLocation == null) {
       log(
         '[NotificationDecisionService] Could not get current location. Aborting notification.',
         name: 'NotificationDecisionService',
@@ -78,10 +78,7 @@ class NotificationDecisionService {
 
     ShopLocation? closestShop;
     double minDistance = double.infinity;
-    final userPosition = LatLng(
-      currentLocation!.coords.latitude,
-      currentLocation.coords.longitude,
-    );
+    final userPosition = LatLng(currentLocation.latitude, currentLocation.longitude);
 
     for (final identifier in _pendingNotificationGeofences) {
       final shop = _geofenceService.geofenceData[identifier];

@@ -1,11 +1,11 @@
 import 'dart:core';
 
+import 'package:buy_beacon/models/app_location.dart';
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
 import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/services/location_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -38,29 +38,24 @@ class _MapScreenState extends State<MapScreen> {
     _mapController = controller;
   }
 
-  void _updateCameraPosition(bg.Location? userLocation) {
-    if (_mapController == null || userLocation?.coords == null) return;
+  void _updateCameraPosition(AppLocation? userLocation) {
+    if (_mapController == null || userLocation == null) return;
 
     _mapController?.animateCamera(
-      CameraUpdate.newLatLng(
-        LatLng(userLocation!.coords.latitude, userLocation.coords.longitude),
-      ),
+      CameraUpdate.newLatLng(LatLng(userLocation.latitude, userLocation.longitude)),
     );
   }
 
   Set<Marker> _createShopMarkers(
     List<ShopLocation> allLocations,
-    bg.Location? userLocation,
+    AppLocation? userLocation,
   ) {
     final Set<Marker> markers = {};
     if (userLocation == null || allLocations.isEmpty) {
       return markers;
     }
 
-    final userLatLng = LatLng(
-      userLocation.coords.latitude,
-      userLocation.coords.longitude,
-    );
+    final userLatLng = LatLng(userLocation.latitude, userLocation.longitude);
 
     // Distance-based, computed directly rather than relying on native geofence
     // ENTER/EXIT events: those drive notifications (see NotificationDecisionService,
@@ -131,7 +126,7 @@ class _MapScreenState extends State<MapScreen> {
         final userLocation = locationService.userLocation;
 
         // Show a loading indicator until we have the user's location.
-        if (userLocation?.coords == null) {
+        if (userLocation == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Nearest Shops')),
             body: const Center(child: Text("Waiting for your location...")),
@@ -149,10 +144,7 @@ class _MapScreenState extends State<MapScreen> {
             final allShopLocations = snapshot.data?.shopLocations ?? [];
             final isLoading = snapshot.data?.isLoading ?? false;
 
-            final initialCameraPosition = LatLng(
-              userLocation!.coords.latitude,
-              userLocation.coords.longitude,
-            );
+            final initialCameraPosition = LatLng(userLocation.latitude, userLocation.longitude);
 
             final Set<Marker> currentMarkers = _createShopMarkers(
               allShopLocations,
