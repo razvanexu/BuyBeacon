@@ -1,70 +1,39 @@
 import 'package:buy_beacon/services/location_service.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:tracelet_platform_interface/tracelet_platform_interface.dart';
 
+import 'location_service_test.mocks.dart';
+
+@GenerateMocks([], customMocks: [MockSpec<TraceletPlatform>(as: #GeneratedMockTraceletPlatform)])
+class MockTraceletPlatform extends GeneratedMockTraceletPlatform with MockPlatformInterfaceMixin {}
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late LocationService locationService;
-  bg.Location? mockCurrentLocation;
-
-  const MethodChannel channel = MethodChannel(
-    'com.transistorsoft/flutter_background_geolocation/methods',
-  );
+  late MockTraceletPlatform mockPlatform;
 
   setUp(() {
     locationService = LocationService();
-    mockCurrentLocation = null;
-
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          switch (methodCall.method) {
-            case 'ready':
-              return {'enabled': true};
-            case 'start':
-              return {'enabled': true};
-            case 'getCurrentPosition':
-              if (mockCurrentLocation != null) {
-                return mockCurrentLocation!.map;
-              }
-              return null;
-            default:
-              return null;
-          }
-        });
+    mockPlatform = MockTraceletPlatform();
+    TraceletPlatform.instance = mockPlatform;
   });
 
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
-  });
-
-  bg.Location createMockLocation(double lat, double lon) {
-    return bg.Location({
-      'coords': {
-        'latitude': lat,
-        'longitude': lon,
-        'accuracy': 1.0,
-        'altitude': 0.0,
-        'heading': 0.0,
-        'speed': 0.0,
-        'ellipsoidal_altitude': 0.0,
-      },
-      'activity': {'type': 'still', 'confidence': 100},
-      'age': 0,
-      'battery': {'is_charging': false, 'level': 1.0},
+  Map<String, Object?> mockLocationMap(double lat, double lon) {
+    return {
+      'coords': {'latitude': lat, 'longitude': lon, 'accuracy': 1.0},
       'timestamp': DateTime.now().toIso8601String(),
       'uuid': 'mock-location-uuid',
       'is_moving': false,
-      'odometer': 0.0,
-    });
+    };
   }
 
   test('getCurrentLocation updates userLocation and notifies listeners', () async {
     // ARRANGE
-    final newLocation = createMockLocation(50.0, 50.0);
-    mockCurrentLocation = newLocation;
+    final newLocationMap = mockLocationMap(50.0, 50.0);
+    when(mockPlatform.getCurrentPosition(any)).thenAnswer((_) async => newLocationMap);
 
     int listenerCallCount = 0;
     locationService.addListener(() => listenerCallCount++);
@@ -73,8 +42,9 @@ void main() {
     final result = await locationService.getCurrentLocation();
 
     // ASSERT
-    expect(result?.uuid, newLocation.uuid);
-    expect(locationService.userLocation?.uuid, newLocation.uuid);
+    expect(result?.latitude, 50.0);
+    expect(result?.longitude, 50.0);
+    expect(locationService.userLocation?.latitude, 50.0);
     expect(listenerCallCount, 1);
   });
 }
