@@ -7,6 +7,7 @@ import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
 import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/screens/home_screen.dart';
+import 'package:buy_beacon/services/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -16,15 +17,17 @@ import 'package:provider/provider.dart';
 import 'home_screen_test.mocks.dart';
 
 // We now need to mock the orchestrator as well.
-@GenerateMocks([ProductProvider, ShoppingOrchestrator])
+@GenerateMocks([ProductProvider, ShoppingOrchestrator, LocationService])
 void main() {
   late MockProductProvider mockProductProvider;
   late MockShoppingOrchestrator mockShoppingOrchestrator;
+  late MockLocationService mockLocationService;
   late StreamController<ShoppingState> orchestratorStreamController;
 
   setUp(() {
     mockProductProvider = MockProductProvider();
     mockShoppingOrchestrator = MockShoppingOrchestrator();
+    mockLocationService = MockLocationService();
     orchestratorStreamController = StreamController<ShoppingState>.broadcast();
 
     // Set up default behaviors for the mocks.
@@ -35,6 +38,7 @@ void main() {
     ).thenAnswer((_) => orchestratorStreamController.stream);
 
     when(mockShoppingOrchestrator.currentState).thenReturn(ShoppingState());
+    when(mockLocationService.needsPowerManagerPrompt).thenReturn(false);
   });
 
   tearDown(() {
@@ -47,6 +51,7 @@ void main() {
       providers: [
         ChangeNotifierProvider<ProductProvider>.value(value: mockProductProvider),
         Provider<ShoppingOrchestrator>.value(value: mockShoppingOrchestrator),
+        ChangeNotifierProvider<LocationService>.value(value: mockLocationService),
       ],
       child: const MaterialApp(home: HomeScreen()),
     );
@@ -159,5 +164,41 @@ void main() {
 
     // ASSERT
     verify(mockProductProvider.deleteProduct(5)).called(1);
+  });
+
+  testWidgets('shows the power manager banner when the OEM health check flags it', (
+      WidgetTester tester,) async {
+    // ARRANGE
+    when(mockLocationService.needsPowerManagerPrompt).thenReturn(true);
+
+    // ACT
+    await tester.pumpWidget(createHomeScreen());
+
+    // ASSERT
+    expect(find.byType(MaterialBanner), findsOneWidget);
+    expect(find.text('Fix settings'), findsOneWidget);
+  });
+
+  testWidgets('dismissing the power manager banner hides it', (WidgetTester tester,) async {
+    // ARRANGE
+    when(mockLocationService.needsPowerManagerPrompt).thenReturn(true);
+    await tester.pumpWidget(createHomeScreen());
+    expect(find.byType(MaterialBanner), findsOneWidget);
+
+    // ACT
+    await tester.tap(find.text('Dismiss'));
+    await tester.pump();
+
+    // ASSERT
+    expect(find.byType(MaterialBanner), findsNothing);
+  });
+
+  testWidgets('does not show the power manager banner when not flagged', (
+      WidgetTester tester,) async {
+    // ACT
+    await tester.pumpWidget(createHomeScreen());
+
+    // ASSERT
+    expect(find.byType(MaterialBanner), findsNothing);
   });
 }

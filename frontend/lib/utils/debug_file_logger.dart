@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -39,6 +40,7 @@ class DebugFileLogger {
   static const String _debugLogToken = String.fromEnvironment('DEBUG_LOG_TOKEN');
 
   File? _file;
+  String? _deviceId;
 
   Future<File> _getFile() async {
     if (_file != null) return _file!;
@@ -47,15 +49,42 @@ class DebugFileLogger {
     return _file!;
   }
 
+  // Both the local file and the remote sink are shared across every install
+  // that logs to them (e.g. two testers walking at once, or one tester
+  // across multiple sideloaded builds) -- without a per-install tag, entries
+  // from different phones interleave indistinguishably. Generated once per
+  // install and persisted alongside the log file itself.
+  Future<String> _getDeviceId() async {
+    if (_deviceId != null) return _deviceId!;
+    try {
+      final dir = await getExternalStorageDirectory();
+      final idFile = File('${dir!.path}/buybeacon_debug_device_id.txt');
+      if (await idFile.exists()) {
+        _deviceId = (await idFile.readAsString()).trim();
+      } else {
+        final id = List.generate(
+          6,
+          (_) => '0123456789abcdef'[Random().nextInt(16)],
+        ).join();
+        await idFile.writeAsString(id);
+        _deviceId = id;
+      }
+    } catch (_) {
+      _deviceId = 'unknown';
+    }
+    return _deviceId!;
+  }
+
   Future<void> log(String message) async {
-    final line = '${DateTime.now().toIso8601String()} $message\n';
+    final deviceId = await _getDeviceId();
+    final line = '${DateTime.now().toIso8601String()} [$deviceId] $message\n';
     try {
       final file = await _getFile();
       await file.writeAsString(line, mode: FileMode.append, flush: true);
     } catch (_) {
       // Debug-only convenience; a logging failure must never affect app behavior.
     }
-    unawaited(_postRemote(message));
+    unawaited(_postRemote('[$deviceId] $message'));
   }
 
   Future<void> _postRemote(String message) async {
