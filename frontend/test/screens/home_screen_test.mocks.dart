@@ -7,11 +7,15 @@ import 'dart:async' as _i7;
 import 'dart:collection' as _i2;
 import 'dart:ui' as _i6;
 
+import 'package:buy_beacon/models/app_location.dart' as _i12;
 import 'package:buy_beacon/models/category_option.dart' as _i8;
 import 'package:buy_beacon/models/product.dart' as _i5;
 import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart' as _i9;
 import 'package:buy_beacon/orchestrators/shopping_state.dart' as _i3;
 import 'package:buy_beacon/providers/product_provider.dart' as _i4;
+import 'package:buy_beacon/services/location_service.dart' as _i10;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -186,6 +190,89 @@ class MockShoppingOrchestrator extends _i1.Mock
   @override
   void dispose() => super.noSuchMethod(
     Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
+}
+
+/// A class which mocks [LocationService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLocationService extends _i1.Mock implements _i10.LocationService {
+  MockLocationService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  bool get needsPowerManagerPrompt =>
+      (super.noSuchMethod(
+            Invocation.getter(#needsPowerManagerPrompt),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get hasListeners =>
+      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
+          as bool);
+
+  @override
+  _i7.Future<void> initialize({
+    required _i11.AndroidNotificationChannel? channel,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#initialize, [], {#channel: channel}),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> openPowerManager() =>
+      (super.noSuchMethod(
+            Invocation.method(#openPowerManager, []),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> refreshSettingsHealth() =>
+      (super.noSuchMethod(
+            Invocation.method(#refreshSettingsHealth, []),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<_i12.AppLocation?> getCurrentLocation() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCurrentLocation, []),
+            returnValue: _i7.Future<_i12.AppLocation?>.value(),
+          )
+          as _i7.Future<_i12.AppLocation?>);
+
+  @override
+  void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+    Invocation.method(#addListener, [listener]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void removeListener(_i6.VoidCallback? listener) => super.noSuchMethod(
+    Invocation.method(#removeListener, [listener]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void dispose() => super.noSuchMethod(
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+    Invocation.method(#notifyListeners, []),
     returnValueForMissingStub: null,
   );
 }

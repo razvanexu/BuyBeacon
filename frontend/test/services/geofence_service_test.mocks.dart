@@ -85,6 +85,14 @@ class MockLocationService extends _i1.Mock implements _i5.LocationService {
   }
 
   @override
+  bool get needsPowerManagerPrompt =>
+      (super.noSuchMethod(
+            Invocation.getter(#needsPowerManagerPrompt),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
   bool get hasListeners =>
       (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
           as bool);
@@ -95,6 +103,24 @@ class MockLocationService extends _i1.Mock implements _i5.LocationService {
   }) =>
       (super.noSuchMethod(
             Invocation.method(#initialize, [], {#channel: channel}),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> openPowerManager() =>
+      (super.noSuchMethod(
+            Invocation.method(#openPowerManager, []),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> refreshSettingsHealth() =>
+      (super.noSuchMethod(
+            Invocation.method(#refreshSettingsHealth, []),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )

@@ -47,5 +47,23 @@
 	<true/>
 	<key>MAPS_API_KEY</key>
 	<string>$(MAPS_API_KEY)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>BuyBeacon needs your location to find nearby stores and notify you when you're close to one on your shopping list.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>BuyBeacon needs background location access to notify you when you're near a store on your shopping list, even while the app isn't open.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>BuyBeacon uses motion data to detect when you're walking or driving, so it can track your location efficiently and save battery while you're stationary.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.tracelet.schedule.start</string>
+		<string>com.tracelet.schedule.stop</string>
+		<string>com.tracelet.periodic.refresh</string>
+	</array>
 </dict>
 </plist>

@@ -1,22 +1,48 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math' show max;
 
 import 'package:buy_beacon/models/app_geofence_event.dart';
 import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/services/location_service.dart';
 import 'package:buy_beacon/utils/debug_file_logger.dart';
+import 'package:buy_beacon/utils/location_utils.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:tracelet/tracelet.dart' as tl;
 
 /// Wraps the Tracelet plugin's geofencing API. This is the only file
 /// (alongside [LocationService]) allowed to import `package:tracelet` --
 /// everything else depends on [AppGeofenceEvent] instead, so swapping the
 /// underlying tracking plugin again only touches this file.
+///
+/// Transitions are computed in software from the continuous location stream
+/// (see [_checkProximity]), not taken solely from Tracelet's native
+/// `onGeofence` callback (still wired up below, kept as a cheap belt-and-
+/// suspenders path). On-device testing (POCO X7 / MediaTek, HyperOS/Android
+/// 16) showed zero native transitions firing across a 1.5km+ walk past 20+
+/// registered geofences, despite continuous GPS updates arriving reliably
+/// (1-7s interval) the whole time -- logcat showed the native geofencing HAL
+/// repeatedly failing (`geofence_dev_write: invalid fd:-1`). Since we already
+/// get a reliable location stream, computing proximity ourselves sidesteps
+/// that native path entirely. This also fixes the "already inside when
+/// registered" edge case for free, since the software check runs immediately
+/// after geofences are added instead of waiting on a native initial-trigger
+/// evaluation.
 class GeofenceService extends ChangeNotifier {
+  static const double _geofenceRadiusMeters = 500;
+  static const double _minExitBufferMeters = 30;
+  // A single stray fix (good reported accuracy, bad real position -- common
+  // indoors with multipath) shouldn't be enough to flip a transition. Require
+  // this many *consecutive* location updates to agree before firing.
+  static const int _confirmationCount = 2;
+
   final LocationService _locationService;
   final Map<String, ShopLocation> _geofenceData = {};
 
   final Set<String> _activeGeofenceIdentifiers = {};
+  final Map<String, int> _pendingEnterCounts = {};
+  final Map<String, int> _pendingExitCounts = {};
 
   final _geofenceEventController = StreamController<AppGeofenceEvent>.broadcast();
 
@@ -49,6 +75,7 @@ class GeofenceService extends ChangeNotifier {
       name: 'GeofenceService',
     );
     tl.Tracelet.onGeofence(_onGeofence);
+    _locationService.addListener(_checkProximity);
 
     // Native geofences persist across app restarts (that's the point, for background
     // tracking), but _geofenceData is in-memory and resets every launch. Without this,
@@ -60,6 +87,7 @@ class GeofenceService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _locationService.removeListener(_checkProximity);
     _geofenceEventController.close();
     super.dispose();
   }
@@ -91,6 +119,8 @@ class GeofenceService extends ChangeNotifier {
         await tl.Tracelet.removeGeofence(identifier);
         _geofenceData.remove(identifier);
         _activeGeofenceIdentifiers.remove(identifier);
+        _pendingEnterCounts.remove(identifier);
+        _pendingExitCounts.remove(identifier);
         log(
           '[GeofenceService] Successfully REMOVED stale geofence: $identifier',
           name: 'GeofenceService',
@@ -161,6 +191,89 @@ class GeofenceService extends ChangeNotifier {
       name: 'GeofenceService',
     );
     await _locationService.getCurrentLocation();
+    // Covers shops that are already within radius at the moment they're
+    // registered -- native initial-trigger evaluation is unreliable (see the
+    // class doc comment), so check immediately instead of waiting for the
+    // next location update.
+    _checkProximity();
+  }
+
+  /// Computes ENTER/EXIT transitions in software from the current location,
+  /// since native geofence transitions can't be relied on (see class doc
+  /// comment). Runs on every location update.
+  ///
+  /// EXIT uses a hysteresis buffer on top of the entry radius, scaled to the
+  /// current fix's reported accuracy (floored at [_minExitBufferMeters]).
+  /// On top of that, both ENTER and EXIT require [_confirmationCount]
+  /// consecutive location updates to agree before firing -- indoor testing
+  /// showed isolated fixes with *good* reported accuracy but a wildly wrong
+  /// real position (multipath), which the accuracy-scaled buffer alone can't
+  /// catch since it trusts the (wrong) reported accuracy. A single stray fix
+  /// no longer flips a transition; a sustained one still does, just a couple
+  /// of location updates later.
+  void _checkProximity() {
+    final userLocation = _locationService.userLocation;
+    if (userLocation == null) return;
+    final userPosition = LatLng(userLocation.latitude, userLocation.longitude);
+    final exitRadius =
+        _geofenceRadiusMeters + max(userLocation.accuracy, _minExitBufferMeters);
+
+    for (final entry in _geofenceData.entries) {
+      final identifier = entry.key;
+      final shop = entry.value;
+      final distance = calculateDistance(
+        userPosition,
+        LatLng(shop.latitude, shop.longitude),
+      );
+      final wasInside = _activeGeofenceIdentifiers.contains(identifier);
+
+      if (!wasInside) {
+        _pendingExitCounts.remove(identifier);
+        if (distance <= _geofenceRadiusMeters) {
+          final count = (_pendingEnterCounts[identifier] ?? 0) + 1;
+          if (count >= _confirmationCount) {
+            _pendingEnterCounts.remove(identifier);
+            _emitSoftwareGeofenceEvent(identifier, GeofenceAction.enter);
+          } else {
+            _pendingEnterCounts[identifier] = count;
+          }
+        } else {
+          _pendingEnterCounts.remove(identifier);
+        }
+      } else {
+        _pendingEnterCounts.remove(identifier);
+        if (distance > exitRadius) {
+          final count = (_pendingExitCounts[identifier] ?? 0) + 1;
+          if (count >= _confirmationCount) {
+            _pendingExitCounts.remove(identifier);
+            _emitSoftwareGeofenceEvent(identifier, GeofenceAction.exit);
+          } else {
+            _pendingExitCounts[identifier] = count;
+          }
+        } else {
+          _pendingExitCounts.remove(identifier);
+        }
+      }
+    }
+  }
+
+  void _emitSoftwareGeofenceEvent(String identifier, GeofenceAction action) {
+    if (kDebugMode) {
+      log(
+        '[GeofenceService] <<<<< SOFTWARE geofence transition >>>>> ID: $identifier, Action: $action',
+        name: 'GeofenceService',
+      );
+    }
+    DebugFileLogger().log(
+      'GeofenceService._checkProximity (software) id=$identifier action=$action',
+    );
+    _geofenceEventController.add(AppGeofenceEvent(identifier: identifier, action: action));
+    if (action == GeofenceAction.enter) {
+      _activeGeofenceIdentifiers.add(identifier);
+    } else if (action == GeofenceAction.exit) {
+      _activeGeofenceIdentifiers.remove(identifier);
+    }
+    notifyListeners();
   }
 
   Future<void> _clearGeofences() async {
@@ -180,6 +293,8 @@ class GeofenceService extends ChangeNotifier {
     }
     _geofenceData.clear();
     _activeGeofenceIdentifiers.clear();
+    _pendingEnterCounts.clear();
+    _pendingExitCounts.clear();
     notifyListeners();
   }
 
