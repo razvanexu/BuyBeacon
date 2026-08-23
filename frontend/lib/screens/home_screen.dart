@@ -6,6 +6,7 @@ import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
 import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/screens/map_screen.dart';
+import 'package:buy_beacon/services/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +17,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   //Controller to get the text from the input field
   final TextEditingController _textController = TextEditingController();
 
@@ -24,6 +25,18 @@ class _HomeScreenState extends State<HomeScreen> {
       GlobalKey<ScaffoldMessengerState>();
 
   StreamSubscription? _orchestratorSubscription;
+  LocationService? _locationService;
+
+  // Dismissed for the current session only -- if the OEM health check still
+  // reports the app isn't whitelisted next time the app is opened, the
+  // banner reappears rather than being silenced forever.
+  bool _powerManagerBannerDismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void didChangeDependencies() {
@@ -38,6 +51,26 @@ class _HomeScreenState extends State<HomeScreen> {
       _orchestratorSubscription = orchestrator.onStateChanged.listen(_handleStateChange);
       log('_handleStateChange called');
     }
+
+    _locationService ??= Provider.of<LocationService>(context, listen: false)
+      ..addListener(_handlePowerManagerPromptChanged);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The user may have just come back from the OEM settings screen opened
+    // via showPowerManager() -- re-check so the banner clears itself if
+    // they whitelisted the app.
+    if (state == AppLifecycleState.resumed) {
+      _locationService?.refreshSettingsHealth();
+    }
+  }
+
+  void _handlePowerManagerPromptChanged() {
+    if (!_locationService!.needsPowerManagerPrompt) {
+      _powerManagerBannerDismissed = false;
+    }
+    if (mounted) setState(() {});
   }
 
   void _handleStateChange(ShoppingState state) {
@@ -65,6 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _locationService?.removeListener(_handlePowerManagerPromptChanged);
+    WidgetsBinding.instance.removeObserver(this);
     _orchestratorSubscription?.cancel();
     _textController.dispose();
     super.dispose();
@@ -106,8 +141,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        body: Column(children: [_buildProductInput(), _buildProductList()]),
+        body: Column(
+          children: [
+            if (_locationService?.needsPowerManagerPrompt == true &&
+                !_powerManagerBannerDismissed)
+              _buildPowerManagerBanner(),
+            _buildProductInput(),
+            _buildProductList(),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildPowerManagerBanner() {
+    return MaterialBanner(
+      content: const Text(
+        'Your phone\'s manufacturer may kill BuyBeacon in the background, stopping '
+        'notifications. Battery settings alone often aren\'t enough -- also enable '
+        '"Autostart" and lock the app in Recent Apps.',
+      ),
+      leading: const Icon(Icons.battery_alert),
+      actions: [
+        TextButton(
+          onPressed: () {
+            setState(() => _powerManagerBannerDismissed = true);
+          },
+          child: const Text('Dismiss'),
+        ),
+        TextButton(
+          onPressed: () => _locationService?.openPowerManager(),
+          child: const Text('Fix settings'),
+        ),
+      ],
     );
   }
 

@@ -22,6 +22,14 @@ class LocationService extends ChangeNotifier {
 
   AppLocation? get userLocation => _userLocation;
 
+  // Whether the UI should prompt the user to whitelist the app via the OEM's
+  // own battery/autostart settings (see _checkSettingsHealth). Only true on
+  // OEMs known to aggressively kill background apps (MIUI/HyperOS, etc.) that
+  // haven't yet exempted the app from battery optimization.
+  bool _needsPowerManagerPrompt = false;
+
+  bool get needsPowerManagerPrompt => _needsPowerManagerPrompt;
+
   AppLocation _toAppLocation(tl.Location location) => AppLocation(
     latitude: location.coords.latitude,
     longitude: location.coords.longitude,
@@ -107,7 +115,64 @@ class LocationService extends ChangeNotifier {
       log('[LocationService] changePace(true) failed: $e', name: 'LocationService', error: e);
       DebugFileLogger().log('LocationService.initialize changePace(true) failed: $e');
     }
+
+    await _checkSettingsHealth();
   }
+
+  // Some OEMs (Xiaomi/HyperOS, Huawei, etc.) kill the app's process in the
+  // background regardless of the foreground service, unless the user
+  // whitelists it through the manufacturer's own settings (autostart,
+  // battery restrictions, locked recent-apps card). Tracelet's health check
+  // flags known-aggressive OEMs so the UI can point the user at
+  // showPowerManager() instead of expecting them to find those settings
+  // themselves.
+  //
+  // Gated on isAggressiveOem alone, NOT also on isIgnoringBatteryOptimizations:
+  // on-device evidence (2026-08-14, see CLAUDE.md) showed the background-kill
+  // still happens even after the user grants "no battery restrictions" --
+  // MIUI/HyperOS splits background survival across several independent
+  // settings (autostart, recents-lock, battery) and isIgnoringBatteryOptimizations
+  // only reflects one of them, so it can't be used to suppress the prompt.
+  Future<void> _checkSettingsHealth() async {
+    try {
+      final health = await tl.Tracelet.getSettingsHealth();
+      final isAggressiveOem = health['isAggressiveOem'] == true;
+      final isIgnoringBatteryOptimizations =
+          health['isIgnoringBatteryOptimizations'] == true;
+      _needsPowerManagerPrompt = isAggressiveOem;
+      log(
+        '[LocationService] Settings health: isAggressiveOem=$isAggressiveOem, '
+        'isIgnoringBatteryOptimizations=$isIgnoringBatteryOptimizations',
+        name: 'LocationService',
+      );
+      DebugFileLogger().log(
+        'LocationService._checkSettingsHealth isAggressiveOem=$isAggressiveOem '
+        'isIgnoringBatteryOptimizations=$isIgnoringBatteryOptimizations',
+      );
+      notifyListeners();
+    } catch (e) {
+      log('[LocationService] getSettingsHealth() failed: $e', name: 'LocationService', error: e);
+      DebugFileLogger().log('LocationService._checkSettingsHealth failed: $e');
+    }
+  }
+
+  /// Opens the OEM-specific settings screen (autostart, battery whitelist,
+  /// etc.) for the user to manually exempt the app. Re-checks settings health
+  /// afterwards so [needsPowerManagerPrompt] reflects whatever the user
+  /// changed once they return to the app.
+  Future<void> openPowerManager() async {
+    try {
+      await tl.Tracelet.showPowerManager();
+    } catch (e) {
+      log('[LocationService] showPowerManager() failed: $e', name: 'LocationService', error: e);
+      DebugFileLogger().log('LocationService.openPowerManager failed: $e');
+    }
+  }
+
+  /// Re-runs the settings health check -- call when the app resumes after the
+  /// user has been sent to the OEM settings screen, so the prompt can clear
+  /// itself once they've whitelisted the app.
+  Future<void> refreshSettingsHealth() => _checkSettingsHealth();
 
   void _onLocation(tl.Location location) {
     if (kDebugMode) {
