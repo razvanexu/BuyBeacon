@@ -2,20 +2,20 @@ package com.buybeacon.backend.service;
 
 import com.buybeacon.backend.dto.NominatimResponseDto;
 import com.buybeacon.backend.dto.ShopLocationDto;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Optional;
-import org.slf4j.Logger;
 
 @Service
 @Profile("!test")
-public class NominatimGeocodingServiceImp implements GeocodingService{
+public class NominatimGeocodingServiceImp implements GeocodingService {
     private static final Logger logger = LoggerFactory.getLogger(NominatimGeocodingServiceImp.class);
     private static final String NOMINATIM_API_URL = "https://nominatim.openstreetmap.org/search";
 
@@ -24,6 +24,7 @@ public class NominatimGeocodingServiceImp implements GeocodingService{
     /**
      * Injects the RestTemplateBuilder to construct a RestTemplate instance.
      * This is the recommended, thread-safe approach.
+     *
      * @param restTemplateBuilder The builder provided by Spring Boot.
      */
     @Autowired
@@ -39,10 +40,10 @@ public class NominatimGeocodingServiceImp implements GeocodingService{
                 .queryParam("limit", 1)
                 .toUriString();
 
-        try{
+        try {
             NominatimResponseDto[] responseDto = restTemplate.getForObject(url, NominatimResponseDto[].class);
 
-            if(responseDto != null && responseDto.length > 0){
+            if (responseDto != null && responseDto.length > 0) {
                 NominatimResponseDto topResults = responseDto[0];
                 String name = topResults.getName();
                 double latitude = Double.parseDouble(topResults.getLatitude());
@@ -53,7 +54,7 @@ public class NominatimGeocodingServiceImp implements GeocodingService{
                 logger.warn("No geocoding results found from address: {}", locationQuery);
                 return Optional.empty();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("Error during geocoding for address: {}", locationQuery, e);
             return Optional.empty();
         }
