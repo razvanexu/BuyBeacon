@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.restclient.RestTemplateBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -28,9 +29,13 @@ public class GooglePlacesClient {
         // Without explicit timeouts, a single stalled Places API call can hang forever and,
         // combined with the bounded scrapingExecutor pool, starve every other concurrent
         // geocoding/discovery call waiting for a free thread.
+        // Explicitly forced onto the Jackson 2 converter: Spring Boot 4.1's default RestTemplate
+        // JSON converter is Jackson 3 (tools.jackson.*), which can't deserialize into the Jackson 2
+        // com.fasterxml.jackson.databind.JsonNode this client (and its callers) return.
         this.restTemplate = restTemplateBuilder
                 .connectTimeout(Duration.ofSeconds(10))
                 .readTimeout(Duration.ofSeconds(10))
+                .messageConverters(new MappingJackson2HttpMessageConverter())
                 .build();
         this.apiKey = apiKey;
     }
