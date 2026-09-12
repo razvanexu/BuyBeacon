@@ -1,5 +1,6 @@
 package com.buybeacon.backend.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import java.util.List;
  * long-term storage. Remove once the location-tracking investigation is
  * closed out.
  */
+@Hidden
 @RestController
 @RequestMapping("/api/debug/log")
 public class DebugLogController {
@@ -32,10 +34,6 @@ public class DebugLogController {
 
     @Value("${debug.log.token:}")
     private String configuredToken;
-
-    private record LogEntry(String receivedAt, String message) {}
-
-    public record LogRequest(String message) {}
 
     @PostMapping
     public synchronized ResponseEntity<Void> append(
@@ -81,5 +79,11 @@ public class DebugLogController {
 
     private boolean isAuthorized(String token) {
         return configuredToken != null && !configuredToken.isBlank() && configuredToken.equals(token);
+    }
+
+    private record LogEntry(String receivedAt, String message) {
+    }
+
+    public record LogRequest(String message) {
     }
 }
