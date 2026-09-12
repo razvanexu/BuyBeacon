@@ -1,5 +1,6 @@
 services:
   selenium:
+    container_name: buybeacon-selenium
     image: selenium/standalone-chrome:latest
     shm_size: 1gb
     environment:
