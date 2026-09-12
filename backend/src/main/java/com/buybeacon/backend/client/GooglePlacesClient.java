@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,10 +14,12 @@ import java.time.Duration;
 
 @Service
 public class GooglePlacesClient {
-    private static  final Logger logger = LoggerFactory.getLogger(GooglePlacesClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(GooglePlacesClient.class);
 
     private static final String PLACES_API_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json";
     private static final String NEARBY_SEARCH_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
+    // Biasing radius (meters) applied around the user's coordinates when searching for shops.
+    private static final int SEARCH_RADIUS_METERS = 15_000;
     private final RestTemplate restTemplate;
     private final String apiKey;
 
@@ -32,9 +34,6 @@ public class GooglePlacesClient {
                 .build();
         this.apiKey = apiKey;
     }
-
-    // Biasing radius (meters) applied around the user's coordinates when searching for shops.
-    private static final int SEARCH_RADIUS_METERS = 15_000;
 
     public JsonNode findPlaces(String query, Double latitude, Double longitude) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(PLACES_API_URL)
