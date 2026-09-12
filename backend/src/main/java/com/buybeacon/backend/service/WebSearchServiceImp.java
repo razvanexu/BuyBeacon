@@ -70,21 +70,21 @@ public class WebSearchServiceImp implements WebSearchService {
         String category = productCategoryService.lookupCategory(product).orElse(FALLBACK_PLACES_TYPE);
         List<String> placesTypes = PLACES_TYPE_SYNONYMS.getOrDefault(category, List.of(category));
 
-        Map<String, DiscoveredShop> shopsByName = new LinkedHashMap<>();
+        Map<String, DiscoveredShop> shopsByKey = new LinkedHashMap<>();
         for (String type : placesTypes) {
             for (DiscoveredShop shop : searchNearbyByType(product, type, latitude, longitude)) {
-                shopsByName.putIfAbsent(shop.name(), shop);
+                shopsByKey.putIfAbsent(shop.identityKey(), shop);
             }
         }
 
         for (String keyword : PLACES_KEYWORD_FALLBACKS.getOrDefault(category, List.of())) {
             for (DiscoveredShop shop : searchNearbyByKeyword(product, keyword, latitude, longitude)) {
-                shopsByName.putIfAbsent(shop.name(), shop);
+                shopsByKey.putIfAbsent(shop.identityKey(), shop);
             }
         }
 
-        logger.info("Found {} potential shops for product {}", shopsByName.size(), product);
-        return new ArrayList<>(shopsByName.values());
+        logger.info("Found {} potential shops for product {}", shopsByKey.size(), product);
+        return new ArrayList<>(shopsByKey.values());
     }
 
     private List<DiscoveredShop> searchNearbyByType(String product, String type, double latitude, double longitude) {
@@ -101,8 +101,9 @@ public class WebSearchServiceImp implements WebSearchService {
             List<DiscoveredShop> shops = new ArrayList<>();
             for (JsonNode result : response.path("results")) {
                 String name = result.path("name").asText();
+                String placeId = result.path("place_id").asText(null);
                 JsonNode location = result.path("geometry").path("location");
-                shops.add(new DiscoveredShop(name, location.path("lat").asDouble(), location.path("lng").asDouble()));
+                shops.add(new DiscoveredShop(name, location.path("lat").asDouble(), location.path("lng").asDouble(), placeId));
             }
             return shops;
         } catch (Exception e) {
@@ -125,8 +126,9 @@ public class WebSearchServiceImp implements WebSearchService {
             List<DiscoveredShop> shops = new ArrayList<>();
             for (JsonNode result : response.path("results")) {
                 String name = result.path("name").asText();
+                String placeId = result.path("place_id").asText(null);
                 JsonNode location = result.path("geometry").path("location");
-                shops.add(new DiscoveredShop(name, location.path("lat").asDouble(), location.path("lng").asDouble()));
+                shops.add(new DiscoveredShop(name, location.path("lat").asDouble(), location.path("lng").asDouble(), placeId));
             }
             return shops;
         } catch (Exception e) {

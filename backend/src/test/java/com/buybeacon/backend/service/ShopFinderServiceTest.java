@@ -61,8 +61,8 @@ class ShopFinderServiceTest {
         // Shops discovered via Places Nearby Search already carry coordinates -- no Text Search
         // re-geocode call should happen for them.
         when(webSearchService.findShopLocations("milk", null, null)).thenReturn(List.of(
-                new DiscoveredShop("Carrefour Vitan", 44.4, 26.1),
-                new DiscoveredShop("Mega Image Unirii", 44.42, 26.11)
+                new DiscoveredShop("Carrefour Vitan", 44.4, 26.1, "place1"),
+                new DiscoveredShop("Mega Image Unirii", 44.42, 26.11, "place2")
         ));
 
         //ACT
