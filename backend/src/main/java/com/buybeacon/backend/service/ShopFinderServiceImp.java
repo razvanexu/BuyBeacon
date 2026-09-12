@@ -90,23 +90,26 @@ public class ShopFinderServiceImp implements ShopFinderService {
                 .map(CompletableFuture::join)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // Group discoveries by shop name (across all products), keeping a single representative
-        // DiscoveredShop per name (for its coordinates, when present) alongside the full list of
-        // products associated with it.
-        Map<String, List<String>> shopNameToProducts = new LinkedHashMap<>();
-        Map<String, DiscoveredShop> shopByName = new LinkedHashMap<>();
+        // Group discoveries by shop identity (Places place_id when known, across all products) --
+        // NOT by name, since chains like Mega Image/Carrefour Express/Froo reuse the exact same
+        // display name across dozens of distinct physical branches in the same city; keying by
+        // name alone would silently collapse separate nearby branches into a single pin, keeping
+        // only whichever one happened to be inserted first (see CLAUDE.md, 2026-09-12).
+        Map<String, List<String>> shopKeyToProducts = new LinkedHashMap<>();
+        Map<String, DiscoveredShop> shopByKey = new LinkedHashMap<>();
         for (Map.Entry<String, List<DiscoveredShop>> entry : productToShops.entrySet()) {
             String product = entry.getKey();
             for (DiscoveredShop shop : entry.getValue()) {
-                shopNameToProducts.computeIfAbsent(shop.name(), k -> new ArrayList<>()).add(product);
-                shopByName.putIfAbsent(shop.name(), shop);
+                String key = shop.identityKey();
+                shopKeyToProducts.computeIfAbsent(key, k -> new ArrayList<>()).add(product);
+                shopByKey.putIfAbsent(key, shop);
             }
         }
-        logger.info("Found {} unique potential shop names from web search.", shopNameToProducts.size());
+        logger.info("Found {} unique potential shops from web search.", shopKeyToProducts.size());
 
-        List<ShopResponseDto> resolvedShops = resolveShops(shopNameToProducts, shopByName, latitude, longitude);
-        logger.info("Returning {} resolved shops out of {} candidate names: {}",
-                resolvedShops.size(), shopNameToProducts.size(),
+        List<ShopResponseDto> resolvedShops = resolveShops(shopKeyToProducts, shopByKey, latitude, longitude);
+        logger.info("Returning {} resolved shops out of {} candidates: {}",
+                resolvedShops.size(), shopKeyToProducts.size(),
                 resolvedShops.stream().map(ShopResponseDto::storeName).toList());
         return resolvedShops;
     }
@@ -121,26 +124,30 @@ public class ShopFinderServiceImp implements ShopFinderService {
     private List<DiscoveredShop> findShopsForProduct(String product, Double latitude, Double longitude) {
         Map<String, DiscoveredShop> shops = new LinkedHashMap<>();
         for (DiscoveredShop shop : webSearchService.findShopLocations(product, latitude, longitude)) {
-            shops.put(shop.name(), shop);
+            shops.put(shop.identityKey(), shop);
         }
 
         for (String retailerName : ENRICHMENT_RETAILERS) {
             List<Product> retailerMatches = scraperOrchestrator.tryScrapeProducts(product, retailerName);
             if (!retailerMatches.isEmpty()) {
                 logger.info("Retailer scraper confirmed '{}' is available at '{}'", product, retailerName);
-                shops.putIfAbsent(retailerName, DiscoveredShop.withoutCoordinates(retailerName));
+                DiscoveredShop enrichmentCandidate = DiscoveredShop.withoutCoordinates(retailerName);
+                shops.putIfAbsent(enrichmentCandidate.identityKey(), enrichmentCandidate);
             }
         }
         return new ArrayList<>(shops.values());
     }
 
-    private List<ShopResponseDto> resolveShops(Map<String, List<String>> shopNameToProducts,
-                                                Map<String, DiscoveredShop> shopByName,
+    private List<ShopResponseDto> resolveShops(Map<String, List<String>> shopKeyToProducts,
+                                                Map<String, DiscoveredShop> shopByKey,
                                                 Double latitude, Double longitude) {
-        List<CompletableFuture<List<ShopResponseDto>>> resolutionFutures = shopNameToProducts.entrySet().stream()
-                .map(entry -> CompletableFuture.supplyAsync(
-                        () -> resolveShop(shopByName.get(entry.getKey()), entry.getKey(), entry.getValue(), latitude, longitude),
-                        scrapingExecutor))
+        List<CompletableFuture<List<ShopResponseDto>>> resolutionFutures = shopKeyToProducts.entrySet().stream()
+                .map(entry -> {
+                    DiscoveredShop shop = shopByKey.get(entry.getKey());
+                    return CompletableFuture.supplyAsync(
+                            () -> resolveShop(shop, shop.name(), entry.getValue(), latitude, longitude),
+                            scrapingExecutor);
+                })
                 .toList();
 
         return resolutionFutures.stream()
