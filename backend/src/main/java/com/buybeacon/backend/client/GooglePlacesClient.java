@@ -78,4 +78,28 @@ public class GooglePlacesClient {
         logger.info("Accessing maps nearby-search api with type {}", type);
         return restTemplate.getForObject(url, JsonNode.class);
     }
+
+    /**
+     * Like findNearbyPlaces, but matches on free-text "keyword" instead of the strict "type"
+     * filter. Some real, nearby places (confirmed on-device: a Penny discount supermarket
+     * literally co-located with the search origin) are excluded by "type" matching entirely --
+     * Google appears to filter Nearby Search's "type" against a place's single internal primary
+     * type rather than its full legacy "types" list, so a place can list e.g.
+     * "grocery_or_supermarket" in "types" yet still never match "type=grocery_or_supermarket".
+     * "keyword" matches against the place's name/types text instead and isn't subject to that,
+     * so it's used as a fallback query merged alongside the type-based ones (see
+     * WebSearchServiceImp) rather than a replacement -- combining "type" and "keyword" in one
+     * request applies them as AND, which would still exclude the same places.
+     */
+    public JsonNode findNearbyPlacesByKeyword(String keyword, double latitude, double longitude) {
+        String url = UriComponentsBuilder.fromUriString(NEARBY_SEARCH_URL)
+                .queryParam("keyword", keyword)
+                .queryParam("location", latitude + "," + longitude)
+                .queryParam("rankby", "distance")
+                .queryParam("key", this.apiKey)
+                .toUriString();
+
+        logger.info("Accessing maps nearby-search api with keyword {}", keyword);
+        return restTemplate.getForObject(url, JsonNode.class);
+    }
 }
