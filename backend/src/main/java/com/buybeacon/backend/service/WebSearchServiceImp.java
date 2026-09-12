@@ -34,6 +34,16 @@ public class WebSearchServiceImp implements WebSearchService {
             "supermarket", List.of("supermarket", "grocery_or_supermarket")
     );
 
+    // Confirmed on-device (2026-09-12): a real, nearby Penny discount supermarket -- one whose
+    // own Places entry lists "grocery_or_supermarket" in its "types" -- was excluded from Nearby
+    // Search results under both "type=supermarket" and "type=grocery_or_supermarket", even when
+    // the search origin was placed exactly on top of it (distance 0). A "keyword"-based query
+    // (matched against name/types text, not the strict internal "type" filter) does find it, so
+    // it's queried as an extra fallback and merged in for categories known to hit this gap.
+    private static final Map<String, String> PLACES_KEYWORD_FALLBACKS = Map.of(
+            "supermarket", "supermarket"
+    );
+
     private final GooglePlacesClient googlePlacesClient;
     private final ProductCategoryService productCategoryService;
 
@@ -63,6 +73,14 @@ public class WebSearchServiceImp implements WebSearchService {
                 shopsByName.putIfAbsent(shop.name(), shop);
             }
         }
+
+        String keywordFallback = PLACES_KEYWORD_FALLBACKS.get(category);
+        if (keywordFallback != null) {
+            for (DiscoveredShop shop : searchNearbyByKeyword(product, keywordFallback, latitude, longitude)) {
+                shopsByName.putIfAbsent(shop.name(), shop);
+            }
+        }
+
         logger.info("Found {} potential shops for product {}", shopsByName.size(), product);
         return new ArrayList<>(shopsByName.values());
     }
@@ -87,6 +105,30 @@ public class WebSearchServiceImp implements WebSearchService {
             return shops;
         } catch (Exception e) {
             logger.error("Error querying Places API for product '{}' (type: {})", product, type, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private List<DiscoveredShop> searchNearbyByKeyword(String product, String keyword, double latitude, double longitude) {
+        try {
+            logger.info("Performing Places nearby search for product '{}' with keyword: {}", product, keyword);
+            JsonNode response = googlePlacesClient.findNearbyPlacesByKeyword(keyword, latitude, longitude);
+            String status = response.path("status").asText();
+
+            if (!"OK".equals(status)) {
+                logger.warn("Places API returned status '{}' for product '{}' (keyword: {})", status, product, keyword);
+                return Collections.emptyList();
+            }
+
+            List<DiscoveredShop> shops = new ArrayList<>();
+            for (JsonNode result : response.path("results")) {
+                String name = result.path("name").asText();
+                JsonNode location = result.path("geometry").path("location");
+                shops.add(new DiscoveredShop(name, location.path("lat").asDouble(), location.path("lng").asDouble()));
+            }
+            return shops;
+        } catch (Exception e) {
+            logger.error("Error querying Places API for product '{}' (keyword: {})", product, keyword, e);
             return Collections.emptyList();
         }
     }
