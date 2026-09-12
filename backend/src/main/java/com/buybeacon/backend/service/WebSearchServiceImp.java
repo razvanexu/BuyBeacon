@@ -39,9 +39,12 @@ public class WebSearchServiceImp implements WebSearchService {
     // Search results under both "type=supermarket" and "type=grocery_or_supermarket", even when
     // the search origin was placed exactly on top of it (distance 0). A "keyword"-based query
     // (matched against name/types text, not the strict internal "type" filter) does find it, so
-    // it's queried as an extra fallback and merged in for categories known to hit this gap.
-    private static final Map<String, String> PLACES_KEYWORD_FALLBACKS = Map.of(
-            "supermarket", "supermarket"
+    // each of these is queried as an extra fallback and merged in for categories known to hit
+    // this gap. "grocery store" is kept alongside "supermarket" (not instead of) since it
+    // surfaces a slightly different result set (e.g. "Berezka store & cuisine" wasn't found by
+    // either type-based query or the "supermarket" keyword alone).
+    private static final Map<String, List<String>> PLACES_KEYWORD_FALLBACKS = Map.of(
+            "supermarket", List.of("supermarket", "grocery store")
     );
 
     private final GooglePlacesClient googlePlacesClient;
@@ -74,9 +77,8 @@ public class WebSearchServiceImp implements WebSearchService {
             }
         }
 
-        String keywordFallback = PLACES_KEYWORD_FALLBACKS.get(category);
-        if (keywordFallback != null) {
-            for (DiscoveredShop shop : searchNearbyByKeyword(product, keywordFallback, latitude, longitude)) {
+        for (String keyword : PLACES_KEYWORD_FALLBACKS.getOrDefault(category, List.of())) {
+            for (DiscoveredShop shop : searchNearbyByKeyword(product, keyword, latitude, longitude)) {
                 shopsByName.putIfAbsent(shop.name(), shop);
             }
         }
