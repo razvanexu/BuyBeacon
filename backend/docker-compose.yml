@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
 
   postgres:
+    container_name: buybeacon-postgres
     image: postgres:16-alpine
     environment:
       - POSTGRES_DB=buybeacon
@@ -26,6 +27,7 @@ services:
     restart: unless-stopped
 
   backend:
+    container_name: buybeacon-backend
     build: .
     ports:
       - "8090:8080"
