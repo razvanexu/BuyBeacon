@@ -29,6 +29,9 @@ class WebSearchServiceTest {
     @Mock
     private ProductCategoryService productCategoryService;
 
+    @Mock
+    private PhysicalStoreDiscoveryService physicalStoreDiscoveryService;
+
     @InjectMocks
     private WebSearchServiceImp webSearchService;
 
@@ -179,5 +182,44 @@ class WebSearchServiceTest {
         assertTrue(resultsForBlank.isEmpty());
 
         verify(googlePlacesClient, never()).findNearbyPlaces(anyString(), anyDouble(), anyDouble());
+    }
+
+    @Test
+    void findShopLocations_shouldIncludeSmallPhysicalStoresFromOpenStreetMap() throws Exception {
+        when(productCategoryService.lookupCategory("cuie")).thenReturn(Optional.of("hardware_store"));
+        when(googlePlacesClient.findNearbyPlaces("hardware_store", 44.4, 26.1))
+                .thenReturn(objectMapper.readTree("{\"status\":\"ZERO_RESULTS\",\"results\":[]}"));
+        when(physicalStoreDiscoveryService.findNearby("hardware_store", 44.4, 26.1)).thenReturn(List.of(
+                new PhysicalStoreCandidate("osm:node:42", "Feroneria din cartier", 44.401, 26.101,
+                        "hardware", "openstreetmap")
+        ));
+
+        List<DiscoveredShop> result = webSearchService.findShopLocations("cuie", 44.4, 26.1);
+
+        assertEquals(1, result.size());
+        assertEquals("Feroneria din cartier", result.get(0).name());
+        assertEquals("osm:node:42", result.get(0).identityKey());
+        assertEquals("openstreetmap", result.get(0).source());
+        assertEquals("CATEGORY_MATCH", result.get(0).matchConfidence());
+    }
+
+    @Test
+    void findShopLocations_shouldDeduplicateSameBranchAcrossPlacesAndOpenStreetMap() throws Exception {
+        when(productCategoryService.lookupCategory("cuie")).thenReturn(Optional.of("hardware_store"));
+        when(googlePlacesClient.findNearbyPlaces("hardware_store", 44.4, 26.1)).thenReturn(objectMapper.readTree("""
+                {"status":"OK","results":[
+                  {"name":"Feroneria Centrală","place_id":"google-1",
+                   "geometry":{"location":{"lat":44.401,"lng":26.101}}}
+                ]}
+                """));
+        when(physicalStoreDiscoveryService.findNearby("hardware_store", 44.4, 26.1)).thenReturn(List.of(
+                new PhysicalStoreCandidate("osm:node:42", "Feroneria Centrală", 44.40102, 26.10102,
+                        "hardware", "openstreetmap")
+        ));
+
+        List<DiscoveredShop> result = webSearchService.findShopLocations("cuie", 44.4, 26.1);
+
+        assertEquals(1, result.size());
+        assertEquals("place:google-1", result.get(0).identityKey());
     }
 }

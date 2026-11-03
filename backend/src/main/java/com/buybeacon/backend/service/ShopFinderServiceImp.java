@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -31,6 +32,12 @@ public class ShopFinderServiceImp implements ShopFinderService {
     // Only retailer currently backed by a real RetailerScraper implementation (see CarrefourScraper).
     // Extend this list as more retailer-specific scrapers are added.
     private static final List<String> ENRICHMENT_RETAILERS = List.of("Carrefour");
+    private static final Set<String> PHYSICAL_RETAIL_PLACE_TYPES = Set.of(
+            "store", "supermarket", "grocery_store", "grocery_or_supermarket",
+            "convenience_store", "hardware_store", "home_goods_store", "pharmacy",
+            "electronics_store", "clothing_store", "shoe_store", "pet_store",
+            "book_store", "department_store", "shopping_mall"
+    );
 
     private final WebSearchService webSearchService;
     private final GooglePlacesClient googlePlacesClient;
@@ -56,20 +63,50 @@ public class ShopFinderServiceImp implements ShopFinderService {
     }
 
     private void createShopResponseDto(String status, JsonNode response, List<ShopResponseDto> allShops,
-                                       List<String> associatedProducts) {
-        // Take only the top (closest/most relevant, given the location bias) result. Shop names
-        // that reach this point without coordinates are generic brand names (e.g. "Carrefour"
-        // from retailer enrichment), and Text Search matches every branch of that brand in the
-        // search radius — without this, a single dense chain can return dozens of branches.
-        if ("OK".equals(status) && response.path("results").size() > 0) {
-            JsonNode result = response.path("results").get(0);
-            String name = result.path("name").asText();
-            JsonNode location = result.path("geometry").path("location");
-            allShops.add(new ShopResponseDto(name,
-                    location.path("lat").asDouble(),
-                    location.path("lng").asDouble(),
-                    associatedProducts));
+                                       List<String> associatedProducts, String source, String matchConfidence) {
+        // Take the first closest/relevant result that is explicitly a customer-facing
+        // retail place. This prevents a generic retailer name from resolving to its
+        // corporate office or warehouse instead of a branch.
+        if ("OK".equals(status)) {
+            for (JsonNode result : response.path("results")) {
+                if (!isPhysicalRetailResult(result)) {
+                    continue;
+                }
+                String name = result.path("name").asText();
+                JsonNode location = result.path("geometry").path("location");
+                allShops.add(new ShopResponseDto(name,
+                        location.path("lat").asDouble(),
+                        location.path("lng").asDouble(),
+                        associatedProducts,
+                        source,
+                        matchConfidence));
+                return;
+            }
         }
+    }
+
+    private boolean isPhysicalRetailResult(JsonNode result) {
+        if ("CLOSED_PERMANENTLY".equals(result.path("business_status").asText())) {
+            return false;
+        }
+        JsonNode location = result.path("geometry").path("location");
+        if (!location.path("lat").isNumber() || !location.path("lng").isNumber()) {
+            return false;
+        }
+        JsonNode types = result.path("types");
+        if (!types.isArray() || types.isEmpty()) {
+            // Older fixtures and some compatible providers omit types. Actual
+            // Google Places responses include them and take the strict branch below.
+            return true;
+        }
+        for (JsonNode type : types) {
+            if (PHYSICAL_RETAIL_PLACE_TYPES.contains(type.asText())) {
+                return true;
+            }
+        }
+        logger.warn("Rejected non-retail Places result '{}' with types {}",
+                result.path("name").asText(), types);
+        return false;
     }
 
     @Override
@@ -168,13 +205,17 @@ public class ShopFinderServiceImp implements ShopFinderService {
                                                Double latitude, Double longitude) {
         if (shop != null && shop.hasCoordinates()) {
             logger.info("Using discovered coordinates for shop '{}' (skipping re-geocode)", shopName);
-            return List.of(new ShopResponseDto(shopName, shop.latitude(), shop.longitude(), associatedProducts));
+            return List.of(new ShopResponseDto(shopName, shop.latitude(), shop.longitude(), associatedProducts,
+                    shop.source(), shop.matchConfidence()));
         }
-        return geocodeShop(shopName, associatedProducts, latitude, longitude);
+        String source = shop == null ? "unknown" : shop.source();
+        String matchConfidence = shop == null ? "CATEGORY_MATCH" : shop.matchConfidence();
+        return geocodeShop(shopName, associatedProducts, latitude, longitude, source, matchConfidence);
     }
 
     private List<ShopResponseDto> geocodeShop(String shopName, List<String> associatedProducts,
-                                               Double latitude, Double longitude) {
+                                               Double latitude, Double longitude,
+                                               String source, String matchConfidence) {
         List<ShopResponseDto> shops = new ArrayList<>();
         try {
             logger.info("Querying Google Places API for shop: '{}'", shopName);
@@ -186,7 +227,7 @@ public class ShopFinderServiceImp implements ShopFinderService {
 
             String status = isSuccessfulResponse(response, shopName);
 
-            createShopResponseDto(status, response, shops, associatedProducts);
+            createShopResponseDto(status, response, shops, associatedProducts, source, matchConfidence);
             logger.info("Geocoding shop '{}' resolved status '{}' -> {} location(s)", shopName, status, shops.size());
         } catch (Exception e) {
             logger.error("Error querying Google Places API for shop: '{}'", shopName, e);

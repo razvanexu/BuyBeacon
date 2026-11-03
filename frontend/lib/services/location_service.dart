@@ -35,6 +35,7 @@ class LocationService extends ChangeNotifier {
     longitude: location.coords.longitude,
     accuracy: location.coords.accuracy,
     isMoving: location.isMoving,
+    timestamp: DateTime.now(),
   );
 
   //geolocation plugin init
