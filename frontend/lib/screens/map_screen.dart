@@ -42,7 +42,9 @@ class _MapScreenState extends State<MapScreen> {
     if (_mapController == null || userLocation == null) return;
 
     _mapController?.animateCamera(
-      CameraUpdate.newLatLng(LatLng(userLocation.latitude, userLocation.longitude)),
+      CameraUpdate.newLatLng(
+        LatLng(userLocation.latitude, userLocation.longitude),
+      ),
     );
   }
 
@@ -78,7 +80,9 @@ class _MapScreenState extends State<MapScreen> {
       return markers;
     }
 
-    final closest = shopsWithDistance.reduce((a, b) => a.distance < b.distance ? a : b);
+    final closest = shopsWithDistance.reduce(
+      (a, b) => a.distance < b.distance ? a : b,
+    );
 
     for (final entry in shopsWithDistance) {
       final shop = entry.shop;
@@ -92,6 +96,7 @@ class _MapScreenState extends State<MapScreen> {
       final String productSnippet = shop.products.isNotEmpty
           ? productsDisplayString
           : 'No products listed';
+      final evidenceSnippet = shop.evidenceLabel;
 
       final bool isClosest =
           shop.latitude == closest.shop.latitude &&
@@ -105,11 +110,13 @@ class _MapScreenState extends State<MapScreen> {
 
       markers.add(
         Marker(
-          markerId: MarkerId(shop.name),
+          // Chain branches often share the exact same display name. Coordinates
+          // keep every physical branch as a separate marker.
+          markerId: MarkerId('${shop.name}_${shop.latitude}_${shop.longitude}'),
           position: LatLng(shop.latitude, shop.longitude),
           infoWindow: InfoWindow(
             title: shop.name,
-            snippet: '$distanceSnippet - $productSnippet',
+            snippet: '$distanceSnippet - $productSnippet - $evidenceSnippet',
           ),
           icon: BitmapDescriptor.defaultMarkerWithHue(hue),
         ),
@@ -139,12 +146,16 @@ class _MapScreenState extends State<MapScreen> {
         // The StreamBuilder listens for shop location and loading state changes.
         return StreamBuilder<ShoppingState>(
           stream: orchestrator.onStateChanged,
-          initialData: orchestrator.currentState, // Use current state for initial build
+          initialData:
+              orchestrator.currentState, // Use current state for initial build
           builder: (context, snapshot) {
             final allShopLocations = snapshot.data?.shopLocations ?? [];
             final isLoading = snapshot.data?.isLoading ?? false;
 
-            final initialCameraPosition = LatLng(userLocation.latitude, userLocation.longitude);
+            final initialCameraPosition = LatLng(
+              userLocation.latitude,
+              userLocation.longitude,
+            );
 
             final Set<Marker> currentMarkers = _createShopMarkers(
               allShopLocations,
@@ -161,15 +172,40 @@ class _MapScreenState extends State<MapScreen> {
                       : const SizedBox.shrink(),
                 ),
               ),
-              body: GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: initialCameraPosition,
-                  zoom: 15.0,
-                ),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: true,
-                markers: currentMarkers,
-                onMapCreated: _onMapCreated,
+              body: Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: initialCameraPosition,
+                      zoom: 15.0,
+                    ),
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                    markers: currentMarkers,
+                    onMapCreated: _onMapCreated,
+                  ),
+                  if (allShopLocations.any((shop) => shop.isOpenStreetMap))
+                    Positioned(
+                      left: 8,
+                      bottom: 8,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          child: Text(
+                            'Date magazine © OpenStreetMap contributors',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             );
           },

@@ -5,8 +5,8 @@ import java.util.Optional;
 /**
  * Fixed, closed set of shop categories a user can pick when categorizing a new product.
  * Deliberately not free text: prevents duplicate/synonymous categories (e.g. two different
- * entries meaning "clothing store") and keeps every category mapped to a real Google Places
- * type, so WebSearchServiceImp can pass it straight to Places Nearby Search.
+ * entries meaning "clothing store") and keeps stable category codes that can be mapped to both
+ * Google Places types and OpenStreetMap retail tags.
  */
 public enum PlacesCategory {
     SUPERMARKET("supermarket", "Alimentar"),

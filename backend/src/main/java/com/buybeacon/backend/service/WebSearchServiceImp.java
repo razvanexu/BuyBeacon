@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 /**
  * Discovers candidate shops for a product using Google Places Nearby Search, based on
@@ -49,11 +50,15 @@ public class WebSearchServiceImp implements WebSearchService {
 
     private final GooglePlacesClient googlePlacesClient;
     private final ProductCategoryService productCategoryService;
+    private final PhysicalStoreDiscoveryService physicalStoreDiscoveryService;
 
     @Autowired
-    public WebSearchServiceImp(GooglePlacesClient googlePlacesClient, ProductCategoryService productCategoryService) {
+    public WebSearchServiceImp(GooglePlacesClient googlePlacesClient,
+                                ProductCategoryService productCategoryService,
+                                PhysicalStoreDiscoveryService physicalStoreDiscoveryService) {
         this.googlePlacesClient = googlePlacesClient;
         this.productCategoryService = productCategoryService;
+        this.physicalStoreDiscoveryService = physicalStoreDiscoveryService;
     }
 
     @Override
@@ -83,8 +88,49 @@ public class WebSearchServiceImp implements WebSearchService {
             }
         }
 
+        // OpenStreetMap fills the main coverage gap left by Places: independent
+        // neighbourhood shops. The OSM provider only returns customer-facing
+        // physical retail features and deliberately excludes offices,
+        // warehouses, private locations and online-only entries.
+        for (PhysicalStoreCandidate candidate :
+                physicalStoreDiscoveryService.findNearby(category, latitude, longitude)) {
+            DiscoveredShop osmShop = new DiscoveredShop(
+                    candidate.name(), candidate.latitude(), candidate.longitude(), candidate.sourceId());
+            if (shopsByKey.values().stream().noneMatch(existing -> samePhysicalStore(existing, osmShop))) {
+                shopsByKey.putIfAbsent(osmShop.identityKey(), osmShop);
+            }
+        }
+
         logger.info("Found {} potential shops for product {}", shopsByKey.size(), product);
         return new ArrayList<>(shopsByKey.values());
+    }
+
+    /**
+     * Avoids duplicate pins when the same branch exists in both Places and OSM.
+     * Name alone is not an identity (chains reuse it), so proximity is required too.
+     */
+    private boolean samePhysicalStore(DiscoveredShop first, DiscoveredShop second) {
+        if (!first.hasCoordinates() || !second.hasCoordinates()) {
+            return false;
+        }
+        if (!normalizeName(first.name()).equals(normalizeName(second.name()))) {
+            return false;
+        }
+        return distanceMeters(first.latitude(), first.longitude(), second.latitude(), second.longitude()) <= 75;
+    }
+
+    private String normalizeName(String name) {
+        return name == null ? "" : name.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
+    }
+
+    private double distanceMeters(double lat1, double lon1, double lat2, double lon2) {
+        double earthRadius = 6_371_000;
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
     private List<DiscoveredShop> searchNearbyByType(String product, String type, double latitude, double longitude) {
