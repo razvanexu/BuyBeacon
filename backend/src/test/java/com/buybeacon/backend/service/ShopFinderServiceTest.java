@@ -216,6 +216,30 @@ class ShopFinderServiceTest {
     }
 
     @Test
+    void findShops_shouldSkipCorporateOfficeAndUseFirstPhysicalRetailBranch() throws IOException {
+        when(webSearchService.findShopLocations("milk", null, null))
+                .thenReturn(List.of(DiscoveredShop.withoutCoordinates("Carrefour")));
+
+        JsonNode response = objectMapper.readTree("""
+                {"status":"OK","results":[
+                  {"name":"Carrefour România HQ","types":["point_of_interest","establishment"],
+                   "geometry":{"location":{"lat":44.50,"lng":26.20}}},
+                  {"name":"Carrefour Market Unirii","types":["supermarket","store"],
+                   "business_status":"OPERATIONAL",
+                   "geometry":{"location":{"lat":44.42,"lng":26.10}}}
+                ]}
+                """);
+        when(googlePlacesClient.findPlaces("Carrefour near me", null, null)).thenReturn(response);
+
+        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
+
+        assertEquals(1, result.size());
+        assertEquals("Carrefour Market Unirii", result.get(0).storeName());
+        assertEquals("retailer_catalog", result.get(0).source());
+        assertEquals("RETAILER_CATALOG", result.get(0).matchConfidence());
+    }
+
+    @Test
     void findShops_shouldReturnEmptyList_whenNoProductsAreProvided() {
         //ARRANGE
         List<String> emptyProductList = Collections.emptyList();
