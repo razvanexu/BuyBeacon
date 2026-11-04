@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.time.Duration;
 
 /** HTTP boundary around the OpenStreetMap Overpass API. */
@@ -29,11 +30,17 @@ public class OpenStreetMapOverpassClient {
     }
 
     public JsonNode execute(String overpassQuery) {
-        String url = UriComponentsBuilder.fromUriString(endpoint)
+        return restTemplate.getForObject(buildUri(overpassQuery), JsonNode.class);
+    }
+
+    // Passed to RestTemplate as a URI, not a String: a String URL is treated as
+    // a template and encoded again, which turned the query into literal
+    // "%5Bout:json%5D..." that Overpass rejects with 400.
+    URI buildUri(String overpassQuery) {
+        return UriComponentsBuilder.fromUriString(endpoint)
                 .queryParam("data", overpassQuery)
-                .build()
                 .encode()
-                .toUriString();
-        return restTemplate.getForObject(url, JsonNode.class);
+                .build()
+                .toUri();
     }
 }
