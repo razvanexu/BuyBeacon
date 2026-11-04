@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'dart:math' show max;
 
 import 'package:buy_beacon/models/app_geofence_event.dart';
+import 'package:buy_beacon/models/app_location.dart';
 import 'package:buy_beacon/models/shop_location.dart';
+import 'package:buy_beacon/services/geofence_state_store.dart';
 import 'package:buy_beacon/services/location_service.dart';
 import 'package:buy_beacon/utils/debug_file_logger.dart';
 import 'package:buy_beacon/utils/location_utils.dart';
@@ -31,18 +33,34 @@ import 'package:tracelet/tracelet.dart' as tl;
 /// evaluation.
 class GeofenceService extends ChangeNotifier {
   static const double _geofenceRadiusMeters = 500;
-  static const double _minExitBufferMeters = 30;
+  // Walk-test logs (2026-11-04) showed a stationary phone's fixes jumping
+  // between ~490m and ~545m from the same shop with reported accuracy of only
+  // 6-16m, so a 30m buffer flapped ENTER/EXIT every 10-30s for 15 minutes.
+  static const double _minExitBufferMeters = 75;
   // A single stray fix (good reported accuracy, bad real position -- common
   // indoors with multipath) shouldn't be enough to flip a transition. Require
-  // this many *consecutive* location updates to agree before firing.
+  // this many *distinct* consecutive fixes to agree before firing.
   static const int _confirmationCount = 2;
+  // How long "inside" is remembered after it was last confirmed, for shops
+  // that drop out of a fetch or across an app restart -- otherwise both
+  // re-fire ENTER for shops the user never left.
+  static const Duration _insideMemory = Duration(minutes: 30);
+  static const Duration _minPersistInterval = Duration(minutes: 1);
 
   final LocationService _locationService;
+  final GeofenceStateStore _stateStore;
   final Map<String, ShopLocation> _geofenceData = {};
 
-  final Set<String> _activeGeofenceIdentifiers = {};
+  // identifier -> when the user was last confirmed inside it. Its keys are the
+  // "inside" set; entries for shops no longer tracked expire after
+  // [_insideMemory].
+  final Map<String, DateTime> _lastInsideAt = {};
   final Map<String, int> _pendingEnterCounts = {};
   final Map<String, int> _pendingExitCounts = {};
+  // identifier -> signature of the last fix counted towards a confirmation.
+  final Map<String, String> _lastCountedFix = {};
+  DateTime? _lastPersistedAt;
+  bool _persistScheduled = false;
 
   final _geofenceEventController = StreamController<AppGeofenceEvent>.broadcast();
 
@@ -51,10 +69,13 @@ class GeofenceService extends ChangeNotifier {
   Map<String, ShopLocation> get geofenceData => Map.unmodifiable(_geofenceData);
 
   Set<String> get activeGeofenceIdentifiers =>
-      Set.unmodifiable(_activeGeofenceIdentifiers);
+      Set.unmodifiable(_lastInsideAt.keys.toSet());
 
-  GeofenceService({required LocationService locationService})
-    : _locationService = locationService {
+  GeofenceService({
+    required LocationService locationService,
+    GeofenceStateStore? stateStore,
+  }) : _locationService = locationService,
+       _stateStore = stateStore ?? GeofenceStateStore() {
     log('[GeofenceService] Instance created.', name: 'GeofenceService');
   }
 
@@ -83,6 +104,15 @@ class GeofenceService extends ChangeNotifier {
     // session, so geofences from a previous run pile up indefinitely instead of being
     // replaced by the backend's current results.
     await _clearGeofences();
+
+    // The process may have been killed in the background (MIUI does this);
+    // restore which shops the user was recently inside so the first fetch
+    // after a restart doesn't re-fire ENTER for all of them.
+    final cutoff = DateTime.now().subtract(_insideMemory);
+    final restored = await _stateStore.load();
+    restored.removeWhere((_, lastInside) => lastInside.isBefore(cutoff));
+    _lastInsideAt.addAll(restored);
+    DebugFileLogger().log('GeofenceService.initialize restored ${restored.length} inside entries');
   }
 
   @override
@@ -118,9 +148,11 @@ class GeofenceService extends ChangeNotifier {
       try {
         await tl.Tracelet.removeGeofence(identifier);
         _geofenceData.remove(identifier);
-        _activeGeofenceIdentifiers.remove(identifier);
+        // _lastInsideAt is deliberately kept: shops can drop out of a single
+        // fetch and come back in the next one while the user never moved.
         _pendingEnterCounts.remove(identifier);
         _pendingExitCounts.remove(identifier);
+        _lastCountedFix.remove(identifier);
         log(
           '[GeofenceService] Successfully REMOVED stale geofence: $identifier',
           name: 'GeofenceService',
@@ -217,6 +249,13 @@ class GeofenceService extends ChangeNotifier {
     final userPosition = LatLng(userLocation.latitude, userLocation.longitude);
     final exitRadius =
         _geofenceRadiusMeters + max(userLocation.accuracy, _minExitBufferMeters);
+    final now = DateTime.now();
+
+    _lastInsideAt.removeWhere(
+      (identifier, lastInside) =>
+          !_geofenceData.containsKey(identifier) &&
+          now.difference(lastInside) > _insideMemory,
+    );
 
     for (final entry in _geofenceData.entries) {
       final identifier = entry.key;
@@ -225,11 +264,12 @@ class GeofenceService extends ChangeNotifier {
         userPosition,
         LatLng(shop.latitude, shop.longitude),
       );
-      final wasInside = _activeGeofenceIdentifiers.contains(identifier);
+      final wasInside = _lastInsideAt.containsKey(identifier);
 
       if (!wasInside) {
         _pendingExitCounts.remove(identifier);
         if (distance <= _geofenceRadiusMeters) {
+          if (!_isNewFix(identifier, userLocation)) continue;
           final count = (_pendingEnterCounts[identifier] ?? 0) + 1;
           if (count >= _confirmationCount) {
             _pendingEnterCounts.remove(identifier);
@@ -243,6 +283,7 @@ class GeofenceService extends ChangeNotifier {
       } else {
         _pendingEnterCounts.remove(identifier);
         if (distance > exitRadius) {
+          if (!_isNewFix(identifier, userLocation)) continue;
           final count = (_pendingExitCounts[identifier] ?? 0) + 1;
           if (count >= _confirmationCount) {
             _pendingExitCounts.remove(identifier);
@@ -252,9 +293,36 @@ class GeofenceService extends ChangeNotifier {
           }
         } else {
           _pendingExitCounts.remove(identifier);
+          _lastInsideAt[identifier] = now;
         }
       }
     }
+    _persistInsideState(force: false);
+  }
+
+  /// False when this exact fix already counted towards a confirmation for
+  /// [identifier] -- the same fix is re-checked right after [addGeofences],
+  /// and Tracelet re-emits the last position as a new record (new timestamp,
+  /// identical coordinates and accuracy) e.g. after getCurrentLocation(),
+  /// which used to let a single fix count as both confirmations. Compared by
+  /// position + accuracy, since a genuinely new fix is never bit-identical.
+  bool _isNewFix(String identifier, AppLocation location) {
+    final signature = '${location.latitude},${location.longitude},${location.accuracy}';
+    if (_lastCountedFix[identifier] == signature) return false;
+    _lastCountedFix[identifier] = signature;
+    return true;
+  }
+
+  void _persistInsideState({required bool force}) {
+    final now = DateTime.now();
+    final lastPersistedAt = _lastPersistedAt;
+    if (!force &&
+        lastPersistedAt != null &&
+        now.difference(lastPersistedAt) < _minPersistInterval) {
+      return;
+    }
+    _lastPersistedAt = now;
+    _stateStore.save(Map.of(_lastInsideAt));
   }
 
   void _emitSoftwareGeofenceEvent(String identifier, GeofenceAction action) {
@@ -268,12 +336,27 @@ class GeofenceService extends ChangeNotifier {
       'GeofenceService._checkProximity (software) id=$identifier action=$action',
     );
     _geofenceEventController.add(AppGeofenceEvent(identifier: identifier, action: action));
-    if (action == GeofenceAction.enter) {
-      _activeGeofenceIdentifiers.add(identifier);
-    } else if (action == GeofenceAction.exit) {
-      _activeGeofenceIdentifiers.remove(identifier);
-    }
+    _applyTransition(identifier, action);
     notifyListeners();
+  }
+
+  void _applyTransition(String identifier, GeofenceAction action) {
+    if (action == GeofenceAction.enter) {
+      _lastInsideAt[identifier] = DateTime.now();
+    } else if (action == GeofenceAction.exit) {
+      _lastInsideAt.remove(identifier);
+    } else {
+      return;
+    }
+    // Deferred to the end of the current event-loop turn so an ENTER burst
+    // (one per shop, all from the same _checkProximity pass) saves once.
+    if (!_persistScheduled) {
+      _persistScheduled = true;
+      scheduleMicrotask(() {
+        _persistScheduled = false;
+        _persistInsideState(force: true);
+      });
+    }
   }
 
   Future<void> _clearGeofences() async {
@@ -292,9 +375,11 @@ class GeofenceService extends ChangeNotifier {
       );
     }
     _geofenceData.clear();
-    _activeGeofenceIdentifiers.clear();
+    // _lastInsideAt survives on purpose (see _insideMemory); it expires by
+    // itself once these shops stay untracked for long enough.
     _pendingEnterCounts.clear();
     _pendingExitCounts.clear();
+    _lastCountedFix.clear();
     notifyListeners();
   }
 
@@ -309,11 +394,7 @@ class GeofenceService extends ChangeNotifier {
     DebugFileLogger().log('GeofenceService._onGeofence id=${event.identifier} action=$action');
     final appEvent = AppGeofenceEvent(identifier: event.identifier, action: action);
     _geofenceEventController.add(appEvent);
-    if (action == GeofenceAction.enter) {
-      _activeGeofenceIdentifiers.add(event.identifier);
-    } else if (action == GeofenceAction.exit) {
-      _activeGeofenceIdentifiers.remove(event.identifier);
-    }
+    _applyTransition(event.identifier, action);
     notifyListeners();
   }
 }

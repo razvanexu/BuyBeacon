@@ -33,7 +33,9 @@ class NotificationDecisionService {
       '[NotificationDecisionService] Initializing...',
       name: 'NotificationDecisionService',
     );
-    _geofenceSubscription = _geofenceService.onGeofenceEvent.listen(_onGeofenceEvent);
+    _geofenceSubscription = _geofenceService.onGeofenceEvent.listen(
+      _onGeofenceEvent,
+    );
   }
 
   void dispose() {
@@ -49,7 +51,10 @@ class NotificationDecisionService {
     if (event.action == GeofenceAction.enter) {
       _pendingNotificationGeofences.add(event.identifier);
       _notificationDebouncetimer?.cancel();
-      _notificationDebouncetimer = Timer(duration, _processPendingNotifications);
+      _notificationDebouncetimer = Timer(
+        duration,
+        _processPendingNotifications,
+      );
       log(
         '[NotificationDecisionService] Added ${event.identifier} to pending and started 15s timer.',
         name: 'NotificationDecisionService',
@@ -78,7 +83,10 @@ class NotificationDecisionService {
 
     ShopLocation? closestShop;
     double minDistance = double.infinity;
-    final userPosition = LatLng(currentLocation.latitude, currentLocation.longitude);
+    final userPosition = LatLng(
+      currentLocation.latitude,
+      currentLocation.longitude,
+    );
 
     for (final identifier in _pendingNotificationGeofences) {
       final shop = _geofenceService.geofenceData[identifier];
@@ -101,7 +109,9 @@ class NotificationDecisionService {
       );
       final storeName = closestShop.name;
       final products = closestShop.products.join(', ');
-      final body = 'You are near $storeName which might have $products';
+      final body = closestShop.isRetailerCatalogMatch
+          ? 'You are near $storeName. Its retailer catalog lists $products'
+          : 'You are near $storeName which might have $products';
       _notificationService.showNotification(
         title: 'Buy Beacon reminder',
         body: body,

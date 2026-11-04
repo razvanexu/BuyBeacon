@@ -8,10 +8,18 @@ class AppLocation {
   final double accuracy;
   final bool isMoving;
 
+  /// When this fix was received. Null only in tests that construct
+  /// [AppLocation] directly without going through [LocationService] --
+  /// production code always sets it, so staleness checks (see
+  /// ShoppingOrchestrator) can tell a fresh fix from one Tracelet cached
+  /// minutes ago while throttled in its stationary/low-power mode.
+  final DateTime? timestamp;
+
   const AppLocation({
     required this.latitude,
     required this.longitude,
     required this.accuracy,
     required this.isMoving,
+    this.timestamp,
   });
 }
