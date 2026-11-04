@@ -38,6 +38,14 @@ class ShoppingOrchestrator {
   static const double _refetchDistanceMeters = 300;
   static const Duration _minRefetchInterval = Duration(seconds: 30);
 
+  // Tracelet throttles GPS polling (and eventually stops it) after ~180s
+  // stationary (see CLAUDE.md's background-kill investigation), so
+  // LocationService.userLocation can silently hold a fix from minutes ago --
+  // e.g. from wherever the user was before walking somewhere new. A shop
+  // search should reflect where the user actually is, so a cached fix older
+  // than this is treated as stale and a fresh one is requested instead.
+  static const Duration _maxCachedLocationAge = Duration(seconds: 60);
+
   ShoppingOrchestrator({
     required ProductProvider productProvider,
     required ProductRepository productRepository,
@@ -112,8 +120,13 @@ class ShoppingOrchestrator {
         name: 'ShoppingOrchestrator',
       );
 
-      final currentLocation =
-          _locationService.userLocation ?? await _locationService.getCurrentLocation();
+      final cachedLocation = _locationService.userLocation;
+      final cachedLocationIsFresh =
+          cachedLocation?.timestamp != null &&
+          DateTime.now().difference(cachedLocation!.timestamp!) < _maxCachedLocationAge;
+      final currentLocation = cachedLocationIsFresh
+          ? cachedLocation
+          : await _locationService.getCurrentLocation() ?? cachedLocation;
 
       if (currentLocation != null) {
         _lastFetchLocation = LatLng(currentLocation.latitude, currentLocation.longitude);

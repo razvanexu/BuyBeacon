@@ -16,10 +16,17 @@ package com.buybeacon.backend.service;
  * separate physical branches in the same city, so deduplicating by name alone silently collapses
  * distinct nearby branches into one, keeping only whichever happened to be inserted first.
  */
-public record DiscoveredShop(String name, Double latitude, Double longitude, String placeId) {
+public record DiscoveredShop(String name, Double latitude, Double longitude, String placeId,
+                             String source, String matchConfidence) {
+
+    public DiscoveredShop(String name, Double latitude, Double longitude, String placeId) {
+        this(name, latitude, longitude, placeId,
+                placeId != null && placeId.startsWith("osm:") ? "openstreetmap" : "google_places",
+                "CATEGORY_MATCH");
+    }
 
     public static DiscoveredShop withoutCoordinates(String name) {
-        return new DiscoveredShop(name, null, null, null);
+        return new DiscoveredShop(name, null, null, null, "retailer_catalog", "RETAILER_CATALOG");
     }
 
     public boolean hasCoordinates() {
@@ -32,6 +39,11 @@ public record DiscoveredShop(String name, Double latitude, Double longitude, Str
      * only for candidates that don't carry one (e.g. retailer-enrichment matches).
      */
     public String identityKey() {
-        return placeId != null ? "place:" + placeId : "name:" + name;
+        if (placeId == null) {
+            return "name:" + name;
+        }
+        // OSM candidates already carry a namespaced identifier such as
+        // osm:node:123. Places IDs are kept under their original namespace.
+        return placeId.startsWith("osm:") ? placeId : "place:" + placeId;
     }
 }

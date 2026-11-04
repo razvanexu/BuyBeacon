@@ -40,6 +40,9 @@ services:
       - DB_USERNAME=${DB_USERNAME:-buybeacon}
       - DB_PASSWORD=${DB_PASSWORD}
       - DEBUG_LOG_TOKEN=${DEBUG_LOG_TOKEN:-}
+      - OVERPASS_URL=http://overpass/api/interpreter
+    # No depends_on for overpass: OSM discovery is optional, and the backend
+    # degrades to Places-only while the Overpass import is still running.
     depends_on:
       selenium:
         condition: service_started
@@ -47,5 +50,36 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Self-hosted Overpass with only the Romania extract -- the public
+  # overpass-api.de is routinely "at capacity" and asks automated users to
+  # run their own instance. First start imports the extract (slow), then
+  # applies Geofabrik's hourly diffs.
+  overpass:
+    container_name: buybeacon-overpass
+    image: wiktorn/overpass-api:v0.7.62.9
+    environment:
+      - OVERPASS_MODE=init
+      - OVERPASS_META=no
+      - OVERPASS_COMPRESSION=gz
+      - OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/romania-latest.osm.pbf
+      - OVERPASS_DIFF_URL=https://download.geofabrik.de/europe/romania-updates/
+      - OVERPASS_PLANET_PREPROCESS=mv /db/planet.osm.bz2 /db/planet.osm.pbf && osmium cat -o /db/planet.osm.bz2 /db/planet.osm.pbf && rm /db/planet.osm.pbf
+      - OVERPASS_UPDATE_SLEEP=3600
+      # Queries use around:, not area filters, so skip area generation.
+      - OVERPASS_USE_AREAS=false
+      - OVERPASS_STOP_AFTER_INIT=false
+      # Every query comes from the backend's single IP, often in parallel and
+      # repeated within the cache window.
+      - OVERPASS_RATE_LIMIT=16
+      - OVERPASS_ALLOW_DUPLICATE_QUERIES=yes
+    # Localhost-only, for checking it from the homelab shell; the backend
+    # reaches it over the compose network.
+    ports:
+      - "127.0.0.1:12345:80"
+    volumes:
+      - overpass-db:/db
+    restart: unless-stopped
+
 volumes:
   postgres-data:
+  overpass-db:
