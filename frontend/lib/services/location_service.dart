@@ -35,7 +35,10 @@ class LocationService extends ChangeNotifier {
     longitude: location.coords.longitude,
     accuracy: location.coords.accuracy,
     isMoving: location.isMoving,
-    timestamp: DateTime.now(),
+    // The fix's own time, not when it reached us: Tracelet can deliver the
+    // same fix more than once, and GeofenceService relies on this to avoid
+    // counting one fix as two confirmations.
+    timestamp: DateTime.tryParse(location.timestamp) ?? DateTime.now(),
   );
 
   //geolocation plugin init
