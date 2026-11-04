@@ -8,12 +8,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Discovers candidate shops for a product using Google Places Nearby Search, based on
@@ -47,6 +50,15 @@ public class WebSearchServiceImp implements WebSearchService {
     private static final Map<String, List<String>> PLACES_KEYWORD_FALLBACKS = Map.of(
             "supermarket", List.of("supermarket", "grocery store")
     );
+
+    // Words that describe a kind of shop rather than identify one (Romanian and English,
+    // diacritics already stripped), so they can't make two nearby shops look like one.
+    private static final Set<String> GENERIC_NAME_WORDS = Set.of(
+            "magazin", "magazinul", "alimentar", "alimentara", "market", "minimarket",
+            "supermarket", "hypermarket", "store", "shop", "nonstop", "non", "stop",
+            "express", "extra", "city", "bacania", "carmangeria",
+            "srl", "sa", "si", "and", "the", "de", "la");
+    private static final int MIN_DISTINCTIVE_LENGTH = 4;
 
     private final GooglePlacesClient googlePlacesClient;
     private final ProductCategoryService productCategoryService;
@@ -108,19 +120,56 @@ public class WebSearchServiceImp implements WebSearchService {
     /**
      * Avoids duplicate pins when the same branch exists in both Places and OSM.
      * Name alone is not an identity (chains reuse it), so proximity is required too.
+     * Sources rarely spell a shop identically ("SuperMercato" vs "SuperMercato - Magazin
+     * Italian Banu Manta", "Băcănia János Bácsi" vs "Băcănia Janos Bacsi"), so names only
+     * need to overlap: one contains the other, or they share a distinctive word. Generic
+     * words are ignored, otherwise e.g. "Mic magazin" would swallow every "... Magazin"
+     * next door.
      */
     private boolean samePhysicalStore(DiscoveredShop first, DiscoveredShop second) {
         if (!first.hasCoordinates() || !second.hasCoordinates()) {
             return false;
         }
-        if (!normalizeName(first.name()).equals(normalizeName(second.name()))) {
+        if (distanceMeters(first.latitude(), first.longitude(), second.latitude(), second.longitude()) > 75) {
             return false;
         }
-        return distanceMeters(first.latitude(), first.longitude(), second.latitude(), second.longitude()) <= 75;
+        return namesOverlap(first.name(), second.name());
     }
 
-    private String normalizeName(String name) {
-        return name == null ? "" : name.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
+    boolean namesOverlap(String firstName, String secondName) {
+        List<String> firstWords = distinctiveWords(firstName);
+        List<String> secondWords = distinctiveWords(secondName);
+        String first = String.join("", firstWords);
+        String second = String.join("", secondWords);
+        if (first.isEmpty() || second.isEmpty()) {
+            return false;
+        }
+        if (first.equals(second)) {
+            return true;
+        }
+        String shorter = first.length() <= second.length() ? first : second;
+        String longer = shorter == first ? second : first;
+        if (shorter.length() >= MIN_DISTINCTIVE_LENGTH && longer.contains(shorter)) {
+            return true;
+        }
+        return firstWords.stream()
+                .filter(word -> word.length() >= MIN_DISTINCTIVE_LENGTH)
+                .anyMatch(secondWords::contains);
+    }
+
+    // Lowercased, diacritics stripped, punctuation inside words dropped ("Lu-Jo" ->
+    // "lujo", "Shop&Go" -> "shopgo"), generic words removed.
+    private List<String> distinctiveWords(String name) {
+        if (name == null) {
+            return List.of();
+        }
+        String folded = Normalizer.normalize(name, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[-&'.]", "");
+        return Arrays.stream(folded.split("[^\\p{L}\\p{N}]+"))
+                .filter(word -> !word.isEmpty() && !GENERIC_NAME_WORDS.contains(word))
+                .toList();
     }
 
     private double distanceMeters(double lat1, double lon1, double lat2, double lon2) {

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -221,5 +223,58 @@ class WebSearchServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("place:google-1", result.get(0).identityKey());
+    }
+
+    @Test
+    void findShopLocations_shouldDeduplicateSameBranch_whenSourcesSpellTheNameDifferently() throws Exception {
+        when(productCategoryService.lookupCategory("paine")).thenReturn(Optional.of("supermarket"));
+        when(googlePlacesClient.findNearbyPlaces(anyString(), anyDouble(), anyDouble())).thenReturn(objectMapper.readTree("""
+                {"status":"OK","results":[
+                  {"name":"SuperMercato - Magazin Italian Banu Manta","place_id":"google-1",
+                   "geometry":{"location":{"lat":44.4525542,"lng":26.0722544}}}
+                ]}
+                """));
+        when(googlePlacesClient.findNearbyPlacesByKeyword(anyString(), anyDouble(), anyDouble()))
+                .thenReturn(objectMapper.readTree("{\"status\":\"ZERO_RESULTS\",\"results\":[]}"));
+        when(physicalStoreDiscoveryService.findNearby("supermarket", 44.456, 26.073)).thenReturn(List.of(
+                new PhysicalStoreCandidate("osm:node:1", "SuperMercato", 44.4525, 26.0723,
+                        "supermarket", "openstreetmap")
+        ));
+
+        List<DiscoveredShop> result = webSearchService.findShopLocations("paine", 44.456, 26.073);
+
+        assertEquals(1, result.size());
+        assertEquals("place:google-1", result.get(0).identityKey());
+    }
+
+    // Real pairs seen within 75 m of each other near Piața Domenii on 2026-11-04.
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+            "SuperMercato - Magazin Italian Banu Manta | SuperMercato",
+            "Băcănia János Bácsi                       | Băcănia Janos Bacsi",
+            "Berezka store & cuisine                   | Berezka",
+            "KJ Center 1 - Banu Manta                  | KJ Center",
+            "Profi Go                                  | Profi City",
+            "Țone. Lu-jo                               | Angela Costina. Lu-Jo",
+    })
+    void namesOverlap_shouldMatchSameShopSpelledDifferently(String first, String second) {
+        assertTrue(webSearchService.namesOverlap(first, second));
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+            "Carrefour Express | Mic magazin",
+            "Carrefour Express | Băcănia János Bácsi",
+            "Mega Image        | PENNY",
+            "Mega Image        | Shop & Go",
+            "MyAuchan          | Magazin alimentar",
+            "BRADI CRISS MARKET| Minimarket",
+            "Total Cris Com    | KJ Center",
+            "Shop&Go           | La Doi Pași Extra",
+            "Alegro Market     | Băcănia Gramador",
+            "Mega Image        | CARMANGERIA TITULESCU / CARNE DIN ROMANIA",
+    })
+    void namesOverlap_shouldNotMatchDifferentNeighbouringShops(String first, String second) {
+        assertFalse(webSearchService.namesOverlap(first, second));
     }
 }
