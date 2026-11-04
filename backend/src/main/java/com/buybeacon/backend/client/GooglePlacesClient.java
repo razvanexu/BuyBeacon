@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.time.Duration;
 
 @Service
@@ -50,9 +51,16 @@ public class GooglePlacesClient {
                     .queryParam("radius", SEARCH_RADIUS_METERS);
         }
 
-        String url = builder.toUriString();
         logger.info("Accessing maps api with query {}", query);
-        return restTemplate.getForObject(url, JsonNode.class);
+        return restTemplate.getForObject(toUri(builder), JsonNode.class);
+    }
+
+    // RestTemplate treats a String URL as a template and encodes it again, and
+    // UriComponentsBuilder.toUriString() already encodes once -- so any space
+    // reached Google as literal "%20" (e.g. keyword "grocery store" matched
+    // "20 St. Market" in Philadelphia). Passing a URI is sent as-is.
+    private static URI toUri(UriComponentsBuilder builder) {
+        return builder.encode().build().toUri();
     }
 
     /**
@@ -68,15 +76,14 @@ public class GooglePlacesClient {
      * "rankby=distance" is used).
      */
     public JsonNode findNearbyPlaces(String type, double latitude, double longitude) {
-        String url = UriComponentsBuilder.fromUriString(NEARBY_SEARCH_URL)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(NEARBY_SEARCH_URL)
                 .queryParam("type", type)
                 .queryParam("location", latitude + "," + longitude)
                 .queryParam("rankby", "distance")
-                .queryParam("key", this.apiKey)
-                .toUriString();
+                .queryParam("key", this.apiKey);
 
         logger.info("Accessing maps nearby-search api with type {}", type);
-        return restTemplate.getForObject(url, JsonNode.class);
+        return restTemplate.getForObject(toUri(builder), JsonNode.class);
     }
 
     /**
@@ -92,14 +99,13 @@ public class GooglePlacesClient {
      * request applies them as AND, which would still exclude the same places.
      */
     public JsonNode findNearbyPlacesByKeyword(String keyword, double latitude, double longitude) {
-        String url = UriComponentsBuilder.fromUriString(NEARBY_SEARCH_URL)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(NEARBY_SEARCH_URL)
                 .queryParam("keyword", keyword)
                 .queryParam("location", latitude + "," + longitude)
                 .queryParam("rankby", "distance")
-                .queryParam("key", this.apiKey)
-                .toUriString();
+                .queryParam("key", this.apiKey);
 
         logger.info("Accessing maps nearby-search api with keyword {}", keyword);
-        return restTemplate.getForObject(url, JsonNode.class);
+        return restTemplate.getForObject(toUri(builder), JsonNode.class);
     }
 }
