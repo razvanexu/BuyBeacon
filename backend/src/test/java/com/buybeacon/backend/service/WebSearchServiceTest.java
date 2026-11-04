@@ -256,6 +256,7 @@ class WebSearchServiceTest {
             "KJ Center 1 - Banu Manta                  | KJ Center",
             "Profi Go                                  | Profi City",
             "Țone. Lu-jo                               | Angela Costina. Lu-Jo",
+            "Shop & Go                                 | Shop&Go",
     })
     void namesOverlap_shouldMatchSameShopSpelledDifferently(String first, String second) {
         assertTrue(webSearchService.namesOverlap(first, second));

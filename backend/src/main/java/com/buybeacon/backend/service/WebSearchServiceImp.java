@@ -137,6 +137,12 @@ public class WebSearchServiceImp implements WebSearchService {
     }
 
     boolean namesOverlap(String firstName, String secondName) {
+        // Checked before dropping generic words: "Shop & Go" and "Shop&Go" would
+        // otherwise reduce to "go" vs "shopgo".
+        String firstFull = String.join("", words(firstName));
+        if (!firstFull.isEmpty() && firstFull.equals(String.join("", words(secondName)))) {
+            return true;
+        }
         List<String> firstWords = distinctiveWords(firstName);
         List<String> secondWords = distinctiveWords(secondName);
         String first = String.join("", firstWords);
@@ -157,9 +163,15 @@ public class WebSearchServiceImp implements WebSearchService {
                 .anyMatch(secondWords::contains);
     }
 
-    // Lowercased, diacritics stripped, punctuation inside words dropped ("Lu-Jo" ->
-    // "lujo", "Shop&Go" -> "shopgo"), generic words removed.
     private List<String> distinctiveWords(String name) {
+        return words(name).stream()
+                .filter(word -> !GENERIC_NAME_WORDS.contains(word))
+                .toList();
+    }
+
+    // Lowercased, diacritics stripped, punctuation inside words dropped ("Lu-Jo" ->
+    // "lujo", "Shop&Go" -> "shopgo").
+    private List<String> words(String name) {
         if (name == null) {
             return List.of();
         }
@@ -168,7 +180,7 @@ public class WebSearchServiceImp implements WebSearchService {
                 .toLowerCase(Locale.ROOT)
                 .replaceAll("[-&'.]", "");
         return Arrays.stream(folded.split("[^\\p{L}\\p{N}]+"))
-                .filter(word -> !word.isEmpty() && !GENERIC_NAME_WORDS.contains(word))
+                .filter(word -> !word.isEmpty())
                 .toList();
     }
 
