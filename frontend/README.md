@@ -7,8 +7,17 @@ store — even in the background. The map screen also shows all nearby shops as
 live, distance-colored pins.
 
 This is the `frontend/` half of the BuyBeacon monorepo. See the root
-[`CLAUDE.md`](../CLAUDE.md) for the full project overview (backend included)
-and its change history; this file covers frontend setup and structure only.
+[`README.md`](../README.md) for the full project overview, backend included.
+This file covers frontend setup and structure only.
+
+Each shop from the backend carries a `source` (`google_places`,
+`openstreetmap`, `retailer_catalog`) and a `matchConfidence`
+(`CATEGORY_MATCH` / `RETAILER_CATALOG`), parsed into `ShopLocation`. The map
+pin snippet shows the evidence level. Notifications word catalog-confirmed
+matches differently ("Its retailer catalog lists …" vs "might have …"). An
+"© OpenStreetMap contributors" attribution appears on the map whenever an OSM
+shop is shown. Map markers are keyed by name + coordinates, so separate
+branches of the same chain each get their own pin.
 
 ## Stack
 
@@ -43,7 +52,7 @@ lib/
 │   ├── home_screen.dart   # product list + category picker
 │   └── map_screen.dart    # GoogleMap with user location + color-coded shop pins
 └── utils/
-    └── debug_file_logger.dart  # temporary remote debug-log pipeline (see CLAUDE.md)
+    └── debug_file_logger.dart  # temporary remote debug-log pipeline
 ```
 
 `AppLocation` and `AppGeofenceEvent` (in `models/`) are the app's own
@@ -100,7 +109,14 @@ flutter test integration_test       # integration test (app_test.dart)
 
 ## Known limitations / in-progress work
 
-See [`CLAUDE.md`](../CLAUDE.md) — "Known Issues" and "Open Bugs" sections —
-for the current state of geofence re-trigger flakiness, background GPS
-throttling behavior, and other in-flight investigations. Don't duplicate that
-tracking here; it's kept up to date in the root doc.
+- Tracelet throttles GPS after ~180 s stationary. Location updates pause until
+  the device moves again, which is expected battery-saving behavior. To keep
+  shop searches accurate, `ShoppingOrchestrator` treats a cached fix older
+  than 60 s as stale and requests a fresh one.
+- If the user is already inside a shop's radius when its geofence is
+  registered, no ENTER event fires until they leave and re-enter.
+- A shop briefly missing from one fetch and reappearing in the next can
+  re-trigger an ENTER notification.
+- On MIUI/HyperOS, enable Autostart, set battery to "No restrictions" and lock
+  the app in Recent Apps. The in-app "Fix settings" banner opens the relevant
+  screen.
