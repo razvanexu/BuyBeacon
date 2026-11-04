@@ -57,9 +57,10 @@ class GeofenceService extends ChangeNotifier {
   final Map<String, DateTime> _lastInsideAt = {};
   final Map<String, int> _pendingEnterCounts = {};
   final Map<String, int> _pendingExitCounts = {};
-  // identifier -> timestamp of the last fix counted towards a confirmation.
-  final Map<String, DateTime> _lastCountedFix = {};
+  // identifier -> signature of the last fix counted towards a confirmation.
+  final Map<String, String> _lastCountedFix = {};
   DateTime? _lastPersistedAt;
+  bool _persistScheduled = false;
 
   final _geofenceEventController = StreamController<AppGeofenceEvent>.broadcast();
 
@@ -111,6 +112,7 @@ class GeofenceService extends ChangeNotifier {
     final restored = await _stateStore.load();
     restored.removeWhere((_, lastInside) => lastInside.isBefore(cutoff));
     _lastInsideAt.addAll(restored);
+    DebugFileLogger().log('GeofenceService.initialize restored ${restored.length} inside entries');
   }
 
   @override
@@ -299,14 +301,15 @@ class GeofenceService extends ChangeNotifier {
   }
 
   /// False when this exact fix already counted towards a confirmation for
-  /// [identifier] -- the same fix is re-checked right after [addGeofences]
-  /// and Tracelet sometimes delivers it twice, which used to let a single
-  /// fix count as both confirmations.
+  /// [identifier] -- the same fix is re-checked right after [addGeofences],
+  /// and Tracelet re-emits the last position as a new record (new timestamp,
+  /// identical coordinates and accuracy) e.g. after getCurrentLocation(),
+  /// which used to let a single fix count as both confirmations. Compared by
+  /// position + accuracy, since a genuinely new fix is never bit-identical.
   bool _isNewFix(String identifier, AppLocation location) {
-    final fixTime = location.timestamp;
-    if (fixTime == null) return true;
-    if (_lastCountedFix[identifier] == fixTime) return false;
-    _lastCountedFix[identifier] = fixTime;
+    final signature = '${location.latitude},${location.longitude},${location.accuracy}';
+    if (_lastCountedFix[identifier] == signature) return false;
+    _lastCountedFix[identifier] = signature;
     return true;
   }
 
@@ -345,7 +348,15 @@ class GeofenceService extends ChangeNotifier {
     } else {
       return;
     }
-    _persistInsideState(force: true);
+    // Deferred to the end of the current event-loop turn so an ENTER burst
+    // (one per shop, all from the same _checkProximity pass) saves once.
+    if (!_persistScheduled) {
+      _persistScheduled = true;
+      scheduleMicrotask(() {
+        _persistScheduled = false;
+        _persistInsideState(force: true);
+      });
+    }
   }
 
   Future<void> _clearGeofences() async {
