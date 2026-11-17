@@ -7,10 +7,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Bounded thread pool shared by the shop-finding flow (web search, geocoding).
- * Kept small on purpose: each web-search task can spin up its own headless Chrome
- * instance, so unbounded concurrency would exhaust local resources and risk
- * looking like abusive traffic to Google.
+ * Bounded thread pool for per-product shop discovery. Kept small on purpose: each
+ * task fans out into several Google Places and Overpass requests, so unbounded
+ * concurrency would burst outbound traffic from the backend's single IP.
  */
 @Configuration
 public class ScrapingConfig {

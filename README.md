@@ -26,12 +26,10 @@ This monorepo has two halves:
    - **OpenStreetMap (Overpass)** for small neighbourhood shops Places often
      misses. It's optional: if Overpass is unavailable, the search continues
      with Places alone.
-   - **Retailer catalog check** (currently Carrefour only, scraped via Selenium)
-     to confirm a product is actually listed.
 4. Results are deduplicated per physical branch (Google `place_id`, or name +
    ≤75 m across sources) and returned with each shop's `source`
-   (`google_places`, `openstreetmap`, `retailer_catalog`) and `matchConfidence`
-   (`CATEGORY_MATCH` or `RETAILER_CATALOG`).
+   (`google_places` or `openstreetmap`) and `matchConfidence` (currently
+   always `CATEGORY_MATCH`).
 5. The app registers proximity checks around those shops, re-fetches after
    moving ≥300 m, and sends a notification for the closest newly entered shop.
 
@@ -61,7 +59,7 @@ OVERPASS_URL=...             # default: https://overpass-api.de/api/interpreter
 OVERPASS_ENABLED=true
 ```
 
-**Docker (backend + PostgreSQL + Selenium):**
+**Docker (backend + PostgreSQL + Overpass):**
 
 ```
 cd backend
@@ -73,7 +71,7 @@ After a base-image or dependency change, rebuild with
 `docker compose build --no-cache backend`.
 
 **Locally (no Docker for the app itself):** start `postgres` (and optionally
-`selenium`) from the compose file, then:
+`overpass`) from the compose file, then:
 
 ```
 cd backend
