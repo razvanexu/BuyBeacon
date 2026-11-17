@@ -1,11 +1,6 @@
 package com.buybeacon.backend.service;
 
-import com.buybeacon.backend.client.GooglePlacesClient;
 import com.buybeacon.backend.dto.ShopResponseDto;
-import com.buybeacon.backend.scraper.common.Product;
-import com.buybeacon.backend.scraper.orchestration.ScraperOrchestrator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -27,14 +21,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ShopFinderServiceTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Mock
     private WebSearchService webSearchService;
-    @Mock
-    private GooglePlacesClient googlePlacesClient;
-    @Mock
-    private ScraperOrchestrator scraperOrchestrator;
 
     private ExecutorService executorService;
     private ShopFinderServiceImp shopFinderService;
@@ -44,10 +32,7 @@ class ShopFinderServiceTest {
         // Single-threaded executor keeps test execution deterministic while still exercising
         // the same CompletableFuture-based code path used in production.
         executorService = Executors.newSingleThreadExecutor();
-        shopFinderService = new ShopFinderServiceImp(webSearchService, googlePlacesClient, scraperOrchestrator,
-                executorService);
-        lenient().when(scraperOrchestrator.tryScrapeProducts(anyString(), anyString()))
-                .thenReturn(Collections.emptyList());
+        shopFinderService = new ShopFinderServiceImp(webSearchService, executorService);
     }
 
     @AfterEach
@@ -56,220 +41,109 @@ class ShopFinderServiceTest {
     }
 
     @Test
-    void findShops_shouldUseDiscoveredCoordinatesDirectly_withoutReGeocoding() {
-        //ARRANGE
-        // Shops discovered via Places Nearby Search already carry coordinates -- no Text Search
-        // re-geocode call should happen for them.
-        when(webSearchService.findShopLocations("milk", null, null)).thenReturn(List.of(
+    void findShops_shouldReturnDiscoveredShopsWithTheirCoordinatesAndEvidence() {
+        when(webSearchService.findShopLocations("milk", 44.456, 26.073)).thenReturn(List.of(
                 new DiscoveredShop("Carrefour Vitan", 44.4, 26.1, "place1"),
-                new DiscoveredShop("Mega Image Unirii", 44.42, 26.11, "place2")
+                new DiscoveredShop("Mic magazin", 44.457, 26.074, "osm:node:42")
         ));
 
-        //ACT
-        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
+        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), 44.456, 26.073);
 
-        //ASSERT
         assertEquals(2, result.size());
-        assertTrue(result.stream().anyMatch(s -> s.storeName().equals("Carrefour Vitan")
-                && s.latitude() == 44.4 && s.longitude() == 26.1));
-        assertTrue(result.stream().anyMatch(s -> s.storeName().equals("Mega Image Unirii")
-                && s.latitude() == 44.42 && s.longitude() == 26.11));
-        verifyNoInteractions(googlePlacesClient);
+        ShopResponseDto places = shopNamed(result, "Carrefour Vitan");
+        assertEquals(44.4, places.latitude());
+        assertEquals(26.1, places.longitude());
+        assertEquals(List.of("milk"), places.products());
+        assertEquals("google_places", places.source());
+        assertEquals("CATEGORY_MATCH", places.matchConfidence());
+
+        ShopResponseDto osm = shopNamed(result, "Mic magazin");
+        assertEquals("openstreetmap", osm.source());
+        assertEquals("CATEGORY_MATCH", osm.matchConfidence());
     }
 
     @Test
-    void findShops_shouldAggregateAndReturnUniqueShops() throws IOException {
-        //ARRANGE
+    void findShops_shouldMergeTheSameShopAcrossProducts() {
         when(webSearchService.findShopLocations("milk", null, null)).thenReturn(List.of(
-                DiscoveredShop.withoutCoordinates("Carrefour"), DiscoveredShop.withoutCoordinates("Mega Image")));
+                new DiscoveredShop("Carrefour Vitan", 44.4, 26.1, "place1"),
+                new DiscoveredShop("Mega Image Unirii", 44.42, 26.11, "place2")));
         when(webSearchService.findShopLocations("bread", null, null)).thenReturn(List.of(
-                DiscoveredShop.withoutCoordinates("Carrefour"), DiscoveredShop.withoutCoordinates("Lidl")));
+                new DiscoveredShop("Carrefour Vitan", 44.4, 26.1, "place1"),
+                new DiscoveredShop("Lidl Discount", 44.45, 26.05, "place3")));
 
-        JsonNode carrefourResponse = objectMapper.readTree(
-                "{\"status\":\"OK\",\"results\":[{\"name\":\"Carrefour Vitan\",\"geometry\":{\"location\":{\"lat\":44" +
-                        ".4,\"lng\":26.1}}}]}"
-        );
-
-        JsonNode megaImageResponse = objectMapper.readTree(
-                "{\"status\":\"OK\",\"results\":[{\"name\":\"Mega Image Unirii\"," +
-                        "\"geometry\":{\"location\":{\"lat\":44.42,\"lng\":26.11}}}]}"
-        );
-
-        JsonNode lidlResponse = objectMapper.readTree(
-                "{\"status\":\"OK\",\"results\":[{\"name\":\"Lidl Discount\",\"geometry\":{\"location\":{\"lat\":44" +
-                        ".45,\"lng\":26.05}}}]}"
-        );
-
-        when(googlePlacesClient.findPlaces("Carrefour near me", null, null)).thenReturn(carrefourResponse);
-        when(googlePlacesClient.findPlaces("Mega Image near me", null, null)).thenReturn(megaImageResponse);
-        when(googlePlacesClient.findPlaces("Lidl near me", null, null)).thenReturn(lidlResponse);
-
-        //ACT
         List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk", "bread"), null, null);
 
-        //ASSERT
-        assertNotNull(result);
         assertEquals(3, result.size(), "Should find 3 unique shops");
-
-        ShopResponseDto carrefour = result
-                .stream()
-                .filter(s -> s.storeName()
-                        .equals("Carrefour Vitan"))
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(carrefour, "Carrefour should be in the list");
-        assertEquals(2, carrefour.products().size(), "Carrefour should have 2 products");
-        assertTrue(carrefour.products().containsAll(List.of("milk", "bread")), "Carrefour should have milk and bread");
-        assertEquals(44.4, carrefour.latitude());
-        assertEquals(26.1, carrefour.longitude());
-
-        ShopResponseDto megaImage = result
-                .stream()
-                .filter(s -> s.storeName()
-                        .equals("Mega Image Unirii"))
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(megaImage, "Mega Image should be in the list");
-        assertEquals(1, megaImage.products().size(), "MegaImage should have 1 product");
-        assertEquals("milk", megaImage.products().get(0), "MegaImage should have milk");
-        assertEquals(44.42, megaImage.latitude());
-        assertEquals(26.11, megaImage.longitude());
-
-        ShopResponseDto lidl = result
-                .stream()
-                .filter(s -> s.storeName()
-                        .equals("Lidl Discount"))
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(lidl, "Lidl should be in the list");
-        assertEquals(1, lidl.products().size(), "Lidl should have 1 product");
-        assertEquals("bread", lidl.products().get(0), "Lidl should have bread");
-        assertEquals(44.45, lidl.latitude());
-        assertEquals(26.05, lidl.longitude());
+        assertEquals(List.of("milk", "bread"), shopNamed(result, "Carrefour Vitan").products());
+        assertEquals(List.of("milk"), shopNamed(result, "Mega Image Unirii").products());
+        assertEquals(List.of("bread"), shopNamed(result, "Lidl Discount").products());
     }
 
     @Test
-    void findShops_ShouldHandleGoogleApiErrorsGracefully() throws IOException {
-        //ARRANGE
-        when(webSearchService.findShopLocations(anyString(), any(), any()))
-                .thenReturn(List.of(DiscoveredShop.withoutCoordinates("Failing Shop")));
-        JsonNode errorResponse = objectMapper.readTree("{\"status\":\"REQUEST_DENIED\"}");
-        when(googlePlacesClient.findPlaces(anyString(), any(), any())).thenReturn(errorResponse);
+    void findShops_shouldKeepSeparateBranchesThatShareADisplayName() {
+        // Chains reuse the exact same name for many branches; identity is the place id, not the name.
+        when(webSearchService.findShopLocations("milk", null, null)).thenReturn(List.of(
+                new DiscoveredShop("Mega Image", 44.40, 26.10, "branchA"),
+                new DiscoveredShop("Mega Image", 44.41, 26.12, "branchB")));
 
-        //ACT
-        List<ShopResponseDto> result = shopFinderService.findShops(List.of("any product"), null, null);
-
-        //ASSERT
-        assertNotNull(result);
-        assertTrue(result.isEmpty(), "The resulting shop list should be empty when the API fails");
-    }
-
-    @Test
-    void findShops_shouldOnlyUseClosestBranch_whenGeocodeReturnsMultipleResults() throws IOException {
-        //ARRANGE
-        // A generic brand name (e.g. from retailer enrichment, with no coordinates) matches every
-        // branch of that chain in the search radius via Text Search -- only the top/closest one
-        // should end up in the final list, not all of them.
-        when(webSearchService.findShopLocations("milk", null, null))
-                .thenReturn(List.of(DiscoveredShop.withoutCoordinates("Carrefour")));
-
-        JsonNode multiBranchResponse = objectMapper.readTree(
-                "{\"status\":\"OK\",\"results\":["
-                        + "{\"name\":\"Carrefour Vitan\",\"geometry\":{\"location\":{\"lat\":44.4,\"lng\":26.1}}},"
-                        + "{\"name\":\"Carrefour Militari\",\"geometry\":{\"location\":{\"lat\":44.45,\"lng\":26.0}}}"
-                        + "]}"
-        );
-        when(googlePlacesClient.findPlaces("Carrefour near me", null, null)).thenReturn(multiBranchResponse);
-
-        //ACT
         List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
 
-        //ASSERT
-        assertEquals(1, result.size(), "Only the closest/top branch should be returned");
-        assertEquals("Carrefour Vitan", result.get(0).storeName());
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(s -> s.latitude() == 44.40 && s.longitude() == 26.10));
+        assertTrue(result.stream().anyMatch(s -> s.latitude() == 44.41 && s.longitude() == 26.12));
     }
 
     @Test
-    void findShops_shouldAddRetailerAsCandidateShop_whenScraperConfirmsProductAvailability() throws IOException {
-        //ARRANGE
-        // Web search finds nothing useful, but the Carrefour scraper confirms the product is actually sold there.
+    void findShops_shouldSkipCandidatesWithoutCoordinates() {
+        when(webSearchService.findShopLocations("milk", null, null)).thenReturn(List.of(
+                new DiscoveredShop("Nameless location", null, null, null),
+                new DiscoveredShop("Lidl Discount", 44.45, 26.05, "place3")));
+
+        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
+
+        assertEquals(1, result.size());
+        assertEquals("Lidl Discount", result.get(0).storeName());
+    }
+
+    @Test
+    void findShops_shouldNeverReturnRetailerCatalogResults() {
+        when(webSearchService.findShopLocations(anyString(), any(), any())).thenReturn(List.of(
+                new DiscoveredShop("Carrefour Vitan", 44.4, 26.1, "place1"),
+                new DiscoveredShop("Mic magazin", 44.457, 26.074, "osm:node:42")));
+
+        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk", "bread"), null, null);
+
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().noneMatch(s -> "retailer_catalog".equals(s.source())));
+        assertTrue(result.stream().noneMatch(s -> "RETAILER_CATALOG".equals(s.matchConfidence())));
+    }
+
+    @Test
+    void findShops_shouldReturnEmptyList_whenNothingIsFound() {
         when(webSearchService.findShopLocations("milk", null, null)).thenReturn(Collections.emptyList());
-        when(scraperOrchestrator.tryScrapeProducts("milk", "Carrefour"))
-                .thenReturn(List.of(new Product("Milk 1L", "5.99", "https://carrefour.ro/milk")));
-
-        JsonNode carrefourResponse = objectMapper.readTree(
-                "{\"status\":\"OK\",\"results\":[{\"name\":\"Carrefour Vitan\",\"geometry\":{\"location\":{\"lat\":44" +
-                        ".4,\"lng\":26.1}}}]}"
-        );
-        when(googlePlacesClient.findPlaces("Carrefour near me", null, null)).thenReturn(carrefourResponse);
-
-        //ACT
-        List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
-
-        //ASSERT
-        assertEquals(1, result.size());
-        assertEquals("Carrefour Vitan", result.get(0).storeName());
-        assertTrue(result.get(0).products().contains("milk"));
-    }
-
-    @Test
-    void findShops_shouldSkipCorporateOfficeAndUseFirstPhysicalRetailBranch() throws IOException {
-        when(webSearchService.findShopLocations("milk", null, null))
-                .thenReturn(List.of(DiscoveredShop.withoutCoordinates("Carrefour")));
-
-        JsonNode response = objectMapper.readTree("""
-                {"status":"OK","results":[
-                  {"name":"Carrefour România HQ","types":["point_of_interest","establishment"],
-                   "geometry":{"location":{"lat":44.50,"lng":26.20}}},
-                  {"name":"Carrefour Market Unirii","types":["supermarket","store"],
-                   "business_status":"OPERATIONAL",
-                   "geometry":{"location":{"lat":44.42,"lng":26.10}}}
-                ]}
-                """);
-        when(googlePlacesClient.findPlaces("Carrefour near me", null, null)).thenReturn(response);
 
         List<ShopResponseDto> result = shopFinderService.findShops(List.of("milk"), null, null);
 
-        assertEquals(1, result.size());
-        assertEquals("Carrefour Market Unirii", result.get(0).storeName());
-        assertEquals("retailer_catalog", result.get(0).source());
-        assertEquals("RETAILER_CATALOG", result.get(0).matchConfidence());
-    }
-
-    @Test
-    void findShops_shouldReturnEmptyList_whenNoProductsAreProvided() {
-        //ARRANGE
-        List<String> emptyProductList = Collections.emptyList();
-
-        //ACT
-        List<ShopResponseDto> result = shopFinderService.findShops(emptyProductList, null, null);
-
-        //ASSERT
         assertNotNull(result);
-        assertTrue(result.isEmpty(), "Should return an empty list for an empty product input");
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void findShops_shouldReturnEmptyList_whenProductsAreNullOrEmpty() {
-        //ARRANGE
-
-        //ACT
         List<ShopResponseDto> resultForNull = shopFinderService.findShops(null, null, null);
         List<ShopResponseDto> resultForEmpty = shopFinderService.findShops(Collections.emptyList(), null, null);
 
-
-        //ASSERT
         assertNotNull(resultForNull);
         assertTrue(resultForNull.isEmpty(), "Should return an empty list for a null product input");
-
         assertNotNull(resultForEmpty);
         assertTrue(resultForEmpty.isEmpty(), "Should return an empty list for an empty product input");
-
         verify(webSearchService, never()).findShopLocations(anyString(), any(), any());
-        verify(googlePlacesClient, never()).findPlaces(anyString(), any(), any());
     }
 
+    private static ShopResponseDto shopNamed(List<ShopResponseDto> shops, String name) {
+        return shops.stream()
+                .filter(s -> s.storeName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(name + " should be in the list"));
+    }
 }
