@@ -1,10 +1,23 @@
 # BuyBeacon
 
-A location-aware shopping list. Add product names on your phone, and BuyBeacon
-notifies you — even in the background — when you walk or drive near a shop
-that is likely to carry them. A map screen shows nearby matching shops as
-live, distance-colored pins (green = closest, yellow = within 500 m,
-red = within 1 km).
+**Never walk past the shop that has what you need.**
+
+BuyBeacon is a shopping list that knows where you are. Write down what you need
+to buy (milk, a light bulb, cat food, a phone charger), and keep living your day.
+When you pass near a shop that sells it, your phone tells you, even if the app
+is closed and the phone is in your pocket.
+
+- **Just a list.** Type the product. The first time you add something new, you
+  tell the app what kind of shop sells it (supermarket, pharmacy, hardware store…);
+  after that it already knows, for everyone.
+- **Reminders on the go.** While you walk or drive, BuyBeacon watches for nearby
+  shops that match your list and sends one notification for the closest one,
+  instead of spamming you.
+- **A live map.** See every matching shop around you, colored by distance:
+  green for the closest, yellow within 500 m, red within 1 km. The pins update
+  as you move.
+- **Small shops too.** Besides the big chains, it finds neighbourhood stores
+  from OpenStreetMap that map apps often miss.
 
 This monorepo has two halves:
 
