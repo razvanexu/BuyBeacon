@@ -16,8 +16,8 @@ public class MockWebSearchServiceImp implements WebSearchService{
     public List<DiscoveredShop> findShopLocations(String product, Double latitude, Double longitude) {
         logger.info("MOCK Web Search: Received request for product '{}'. Returning hardcoded list.", product);
         return List.of(
-                DiscoveredShop.withoutCoordinates("Mega Image Concept store (Mock)"),
-                DiscoveredShop.withoutCoordinates("Carrefour Market (Mock)"),
-                DiscoveredShop.withoutCoordinates("Lidl Discount (Mock)"));
+                new DiscoveredShop("Mega Image Concept store (Mock)", 44.4268, 26.1025, "mock-mega-image"),
+                new DiscoveredShop("Carrefour Market (Mock)", 44.4300, 26.1100, "mock-carrefour"),
+                new DiscoveredShop("Lidl Discount (Mock)", 44.4350, 26.0950, "mock-lidl"));
     }
 }

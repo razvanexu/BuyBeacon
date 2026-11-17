@@ -10,11 +10,12 @@ This is the `frontend/` half of the BuyBeacon monorepo. See the root
 [`README.md`](../README.md) for the full project overview, backend included.
 This file covers frontend setup and structure only.
 
-Each shop from the backend carries a `source` (`google_places`,
-`openstreetmap`, `retailer_catalog`) and a `matchConfidence`
-(`CATEGORY_MATCH` / `RETAILER_CATALOG`), parsed into `ShopLocation`. The map
-pin snippet shows the evidence level. Notifications word catalog-confirmed
-matches differently ("Its retailer catalog lists …" vs "might have …"). An
+Each shop from the backend carries a `source` (`google_places` or
+`openstreetmap`) and a `matchConfidence` (currently always `CATEGORY_MATCH`),
+parsed into `ShopLocation`. The map pin snippet shows the evidence level. The
+app still handles the older `retailer_catalog` / `RETAILER_CATALOG` values
+(catalog-confirmed wording in notifications), but the backend no longer sends
+them since the Carrefour scraper was removed. An
 "© OpenStreetMap contributors" attribution appears on the map whenever an OSM
 shop is shown. Map markers are keyed by name + coordinates, so separate
 branches of the same chain each get their own pin.
