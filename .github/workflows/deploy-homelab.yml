@@ -1,0 +1,49 @@
+name: Deploy to homelab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-homelab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-homelab
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Rebuild backend on homelab
+    runs-on: [self-hosted, homelab]
+    defaults:
+      run:
+        working-directory: /home/razvanexu/projects/BuyBeacon
+    steps:
+      - name: Update checkout to the pushed commit
+        run: |
+          git fetch https://github.com/razvanexu/BuyBeacon.git main:refs/remotes/origin/main
+          git checkout main
+          git reset --hard "$GITHUB_SHA"
+          git log -1 --oneline
+
+      - name: Rebuild and restart backend
+        working-directory: /home/razvanexu/projects/BuyBeacon/backend
+        run: docker compose up -d --build --remove-orphans backend
+
+      - name: Wait for the API
+        working-directory: /home/razvanexu/projects/BuyBeacon/backend
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://localhost:8090/api/products/categories; then
+              echo "Backend is up"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Backend did not respond within 150 s"
+          docker compose logs --tail 100 backend
+          exit 1

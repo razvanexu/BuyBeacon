@@ -17,8 +17,16 @@ if (localPropertiesFile.exists()) {
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY")
     ?: throw GradleException(
         "Missing MAPS_API_KEY in android/local.properties. " +
-        "Copy local.properties.example's MAPS_API_KEY line and set your key."
+                "Copy local.properties.example's MAPS_API_KEY line and set your key."
     )
+
+// Release signing key, kept out of source control in android/key.properties.
+// Without it (e.g. a fresh clone), release builds fall back to the debug key.
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+}
 
 android {
     namespace = "com.buy_beacon.frontend"
@@ -49,11 +57,24 @@ android {
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             isShrinkResources = false
         }
     }
