@@ -1,19 +1,22 @@
 flowchart TD
-    A["POST /api/reminders (Receive Reminder List)"]
-    B["For each product: Web Search"]
-    C["Parse Search Results (JSoup)"]
-    D["Extract Store Addresses"]
-    E["Geocode Addresses (Google API)"]
-    F["Aggregate Store Coordinates"]
-    G["Return Coordinates to Mobile App"]
+    A["POST /api/shops/find<br/>products + latitude/longitude"]
+    B["ShopFinderController -> ShopFinderServiceImp"]
+    C["For each product, in parallel<br/>(bounded scrapingExecutor)"]
+    D["ProductCategoryService:<br/>crowdsourced product -> Places type<br/>(unknown product -> generic 'store')"]
+    E["Google Places Nearby Search<br/>type=..., rankby=distance<br/>(supermarket also queries grocery_or_supermarket)"]
+    F["Google Places Nearby Search by keyword<br/>(supermarket only: 'supermarket', 'grocery store')"]
+    G["OpenStreetMap discovery<br/>self-hosted Overpass, small radius,<br/>physical retail only, short cache"]
+    H["WebSearchServiceImp: merge sources<br/>same place_id / OSM id = same shop<br/>cross-source: names overlap AND within 75 m"]
+    I["ShopFinderServiceImp: merge across products<br/>by shop identity, collect products per shop,<br/>drop candidates without coordinates"]
+    J["Return List of ShopResponseDto<br/>storeName, lat/lng, products,<br/>source (google_places / openstreetmap), matchConfidence"]
 
-    A --> B
-    B --> C
-    C --> D
+    A --> B --> C --> D
     D --> E
-    E --> F
-    F --> G
+    D --> F
+    D --> G
+    E --> H
+    F --> H
+    G --> H
+    H --> I --> J
 
-    %% Notes
-    C -.->|"Web scraping only, no real-time inventory"| D
-    F -.->|"No user accounts, no price comparison in v1"| G 
+    G -.->|"Overpass down: continue with Places only"| H

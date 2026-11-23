@@ -1,20 +1,43 @@
 sequenceDiagram
-    participant User
-    participant MobileApp as "Mobile App"
+    actor User
+    participant App as "Mobile App"
+    participant Tracelet as "Tracelet (location)"
     participant Backend as "Backend API"
-    participant Scraper as "Web Scraper"
-    participant Geocoder as "Geocoding Service"
-    participant Store as "Store Location"
+    participant Places as "Google Places"
+    participant OSM as "Overpass (OSM)"
 
-    User->>MobileApp: Adds product to Reminder List
-    MobileApp->>Backend: POST /api/reminders (Reminder List)
-    Backend->>Scraper: Search for stores selling product
-    Scraper->>Store: Fetch search results, extract addresses
-    Scraper->>Geocoder: Send addresses for geocoding
-    Geocoder-->>Scraper: Return lat/lon coordinates
-    Scraper-->>Backend: Return store coordinates
-    Backend-->>MobileApp: Return store coordinates
-    MobileApp->>MobileApp: Register geofences for stores
-    User->>MobileApp: Moves near a store
-    MobileApp->>MobileApp: Detects geofence entry
-    MobileApp-->>User: Sends push notification ("You are near a store with your item!") 
+    User->>App: Adds product to the list
+    App->>Backend: GET /api/products/category?product=...
+    alt product not categorized yet
+        App->>User: Category picker
+        User->>App: Picks category
+        App->>Backend: POST /api/products/category
+    end
+    App->>App: Save product in local SQLite
+    App->>Tracelet: Current location (fresh fix if older than 60 s)
+    App->>Backend: POST /api/shops/find (products, lat/lng)
+    par category-based discovery
+        Backend->>Places: Nearby Search (type, rankby=distance)
+        Places-->>Backend: Places results
+    and neighbourhood stores
+        Backend->>OSM: Overpass query (small radius)
+        OSM-->>Backend: shop / pharmacy features
+    end
+    Backend->>Backend: Deduplicate per physical shop, merge products
+    Backend-->>App: Shops with coordinates, products, source
+    App->>App: Track shops as software geofences (500 m)
+
+    loop every location update
+        Tracelet-->>App: Location fix
+        App->>App: Update map pin colors
+        App->>App: Check proximity (ENTER / EXIT with 75 m buffer)
+        opt moved 300 m or more since last fetch
+            App->>Backend: POST /api/shops/find (new position)
+            Backend-->>App: Updated shop list
+        end
+    end
+
+    App->>App: ENTER confirmed, 5 s debounce, pick closest shop
+    App-->>User: Notification "You are near (shop) which might have (products)"
+    User->>App: Taps notification
+    App-->>User: Map screen

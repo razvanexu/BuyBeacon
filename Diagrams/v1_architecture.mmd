@@ -1,21 +1,28 @@
 flowchart TD
-    subgraph "Mobile App (Flutter)"
-        A1["User adds/removes items to Reminder List"]
-        A2["Geolocation & Geofencing"]
-        A3["Receives push notification"]
+    subgraph App["Mobile App (Flutter)"]
+        A1["Shopping list<br/>stored only on the phone (SQLite),<br/>no accounts, no sync"]
+        A2["Category picker<br/>first time a product name is seen"]
+        A3["Continuous location (Tracelet)<br/>+ software geofences, 500 m"]
+        A4["Notification for the closest shop"]
+        A5["Map with color-coded shop pins"]
     end
-    subgraph "Backend (Spring Boot)"
-        B1["REST API: /api/reminders"]
-        B2["Web Scraper (JSoup)"]
-        B3["Geocoding Service (Google API)"]
+    subgraph Backend["Backend (Spring Boot)"]
+        B1["POST /api/shops/find"]
+        B2["Shared product -> category dictionary<br/>(PostgreSQL)"]
+        B3["Google Places Nearby Search"]
+        B4["OpenStreetMap / Overpass<br/>(self-hosted)"]
+        B5["Merge + deduplicate shops"]
     end
-    A1 -->|"Sends Reminder List"| B1
-    B1 -->|"For each item: search for stores"| B2
-    B2 -->|"Extracts store addresses"| B3
-    B3 -->|"Converts addresses to lat/lon"| B1
-    B1 -->|"Returns store coordinates"| A2
-    A2 -->|"Monitors user location, triggers geofence"| A3
-    A3 -->|"Notifies user when near store"| A1
-    %% Notes
-    A2 -.->|"No user accounts; list stored locally"| A1
-    B2 -.->|"No price comparison or route planning in v1"| B3 
+
+    A1 --> A2
+    A2 -->|"save category"| B2
+    A1 -->|"products + location"| B1
+    B1 --> B2
+    B2 -->|"category per product"| B3
+    B2 -->|"category per product"| B4
+    B3 --> B5
+    B4 --> B5
+    B5 -->|"shops with coordinates + products"| A3
+    A3 -->|"moved 300 m: re-fetch"| B1
+    A3 -->|"ENTER"| A4
+    A3 --> A5

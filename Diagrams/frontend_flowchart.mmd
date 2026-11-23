@@ -1,29 +1,34 @@
 flowchart TD
     A["User opens app"]
-    B["View Reminder List"]
-    C["Add product to list"]
-    D["Remove product from list"]
-    E["Send updated list to backend"]
-    F["Receive store coordinates from backend"]
-    G["Request location permissions"]
-    H["Register geofences for stores"]
-    I["App runs in background"]
-    J["User enters geofence area"]
-    K["Receive push notification"]
+    B["LocationService.initialize<br/>request location + notification permission,<br/>start Tracelet"]
+    C["HomeScreen: product list<br/>(local SQLite, buybeacon.db)"]
+    D["User adds a product"]
+    E{"GET /api/products/category<br/>already categorized?"}
+    F["Category picker<br/>(GET /api/products/categories)"]
+    G["POST /api/products/category<br/>save user's pick"]
+    H["ProductProvider saves to SQLite<br/>-> onProductsChanged"]
+    I["ShoppingOrchestrator._fetchProductsAndShops<br/>fresh GPS fix if cached one is older than 60 s"]
+    J["POST /api/shops/find"]
+    K["GeofenceService.addGeofences<br/>shop coordinates"]
+    L["Location update from Tracelet"]
+    M{"Moved 300 m or more since last fetch<br/>and 30 s since last fetch?"}
+    N["GeofenceService._checkProximity<br/>ENTER within 500 m, EXIT beyond 575 m<br/>(2 distinct fixes to confirm)"]
+    O["NotificationDecisionService<br/>5 s debounce, closest newly entered shop"]
+    P["Local notification<br/>(tap opens map)"]
+    Q["MapScreen: pins colored by live distance<br/>green closest, yellow up to 500 m, red up to 1000 m"]
+    R["Backend unreachable:<br/>retry with exponential backoff (30 s up to 1 h)"]
 
-    A --> B
-    B --> C
-    B --> D
-    C --> E
-    D --> E
-    E --> F
-    F --> G
-    G --> H
-    H --> I
-    I --> J
-    J --> K
-    K --> B
-
-    %% Notes
-    G -.->|"User must grant location/background permissions"| H
-    I -.->|"Geofencing works in background"| J 
+    A --> B --> C
+    C --> D --> E
+    E -->|"no"| F --> G --> H
+    E -->|"yes"| H
+    H --> I --> J --> K
+    J -.->|"connection error"| R -.-> I
+    B --> L
+    L --> M
+    M -->|"yes"| I
+    L --> N
+    K --> N
+    N -->|"ENTER"| O --> P
+    L --> Q
+    K --> Q
