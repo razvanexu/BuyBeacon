@@ -13,7 +13,6 @@ void main() {
     });
 
     expect(shop.isOpenStreetMap, isTrue);
-    expect(shop.isRetailerCatalogMatch, isFalse);
     expect(shop.evidenceLabel, 'Magazin potrivit după categorie');
   });
 

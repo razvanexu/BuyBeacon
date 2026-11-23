@@ -109,9 +109,7 @@ class NotificationDecisionService {
       );
       final storeName = closestShop.name;
       final products = closestShop.products.join(', ');
-      final body = closestShop.isRetailerCatalogMatch
-          ? 'You are near $storeName. Its retailer catalog lists $products'
-          : 'You are near $storeName which might have $products';
+      final body = 'You are near $storeName which might have $products';
       _notificationService.showNotification(
         title: 'Buy Beacon reminder',
         body: body,
