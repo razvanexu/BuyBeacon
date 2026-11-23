@@ -37,16 +37,4 @@ class GooglePlacesClientTest {
 
         server.verify();
     }
-
-    @Test
-    void findPlaces_encodesShopNameExactlyOnce() {
-        server.expect(requestTo(allOf(
-                        containsString("query=Carrefour%20Express"),
-                        not(containsString("%25")))))
-                .andRespond(withSuccess(EMPTY_OK, MediaType.APPLICATION_JSON));
-
-        client.findPlaces("Carrefour Express", 44.456, 26.073);
-
-        server.verify();
-    }
 }

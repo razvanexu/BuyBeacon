@@ -1,5 +1,6 @@
 package com.buybeacon.backend;
 
+import com.buybeacon.backend.client.GooglePlacesClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -7,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -14,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Guards the 2026-11-17 removal of the Carrefour scraper and Selenium: none of the removed
  * classes, libraries or deployment pieces may come back (directly or as a transitive dependency).
+ * Also guards the later removal of the unused geocoding path and Places Text Search.
  */
 class RemovedScraperArtifactsTest {
 
@@ -29,6 +32,26 @@ class RemovedScraperArtifactsTest {
     })
     void removedApplicationClassesAreGone(String className) {
         assertThrows(ClassNotFoundException.class, () -> Class.forName(className));
+    }
+
+    // Unwired geocoding path (Nominatim), removed afterwards as dead code.
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "com.buybeacon.backend.service.GeocodingService",
+            "com.buybeacon.backend.service.NominatimGeocodingServiceImp",
+            "com.buybeacon.backend.service.MockGeocodingServiceImp",
+            "com.buybeacon.backend.dto.NominatimResponseDto",
+            "com.buybeacon.backend.dto.ShopLocationDto",
+    })
+    void removedGeocodingClassesAreGone(String className) {
+        assertThrows(ClassNotFoundException.class, () -> Class.forName(className));
+    }
+
+    @Test
+    void googlePlacesClientNoLongerHasTextSearch() {
+        assertFalse(Arrays.stream(GooglePlacesClient.class.getDeclaredMethods())
+                        .anyMatch(m -> m.getName().equals("findPlaces")),
+                "GooglePlacesClient.findPlaces (Text Search) was removed as unused");
     }
 
     @ParameterizedTest
