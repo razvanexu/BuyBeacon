@@ -17,11 +17,7 @@ class ShopLocation {
 
   bool get isOpenStreetMap => source == 'openstreetmap';
 
-  bool get isRetailerCatalogMatch => matchConfidence == 'RETAILER_CATALOG';
-
-  String get evidenceLabel => isRetailerCatalogMatch
-      ? 'Produs găsit în catalogul retailerului'
-      : 'Magazin potrivit după categorie';
+  String get evidenceLabel => 'Magazin potrivit după categorie';
 
   factory ShopLocation.fromMap(Map<String, dynamic> map) {
     return ShopLocation(

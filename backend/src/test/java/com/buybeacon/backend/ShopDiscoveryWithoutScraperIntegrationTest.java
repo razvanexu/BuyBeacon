@@ -26,8 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -113,8 +111,8 @@ class ShopDiscoveryWithoutScraperIntegrationTest {
                 .andExpect(jsonPath("$[*].source", not(hasItem("retailer_catalog"))))
                 .andExpect(jsonPath("$[*].matchConfidence", everyItem(in(List.of("CATEGORY_MATCH")))));
 
-        // No name-based geocoding happens any more: coordinates come straight from discovery.
-        verify(googlePlacesClient, never()).findPlaces(anyString(), any(), any());
+        // Coordinates come straight from discovery: nothing else asks Places to geocode a name.
+        verifyNoInteractions(googlePlacesClient);
     }
 
     @Test

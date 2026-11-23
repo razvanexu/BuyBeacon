@@ -18,10 +18,7 @@ import java.time.Duration;
 public class GooglePlacesClient {
     private static final Logger logger = LoggerFactory.getLogger(GooglePlacesClient.class);
 
-    private static final String PLACES_API_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json";
     private static final String NEARBY_SEARCH_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
-    // Biasing radius (meters) applied around the user's coordinates when searching for shops.
-    private static final int SEARCH_RADIUS_METERS = 15_000;
     private final RestTemplate restTemplate;
     private final String apiKey;
 
@@ -29,7 +26,7 @@ public class GooglePlacesClient {
     public GooglePlacesClient(RestTemplateBuilder restTemplateBuilder, @Value("${google.maps.api.key}") String apiKey) {
         // Without explicit timeouts, a single stalled Places API call can hang forever and,
         // combined with the bounded scrapingExecutor pool, starve every other concurrent
-        // geocoding/discovery call waiting for a free thread.
+        // discovery call waiting for a free thread.
         // Explicitly forced onto the Jackson 2 converter: Spring Boot 4.1's default RestTemplate
         // JSON converter is Jackson 3 (tools.jackson.*), which can't deserialize into the Jackson 2
         // com.fasterxml.jackson.databind.JsonNode this client (and its callers) return.
@@ -41,20 +38,6 @@ public class GooglePlacesClient {
         this.apiKey = apiKey;
     }
 
-    public JsonNode findPlaces(String query, Double latitude, Double longitude) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(PLACES_API_URL)
-                .queryParam("query", query)
-                .queryParam("key", this.apiKey);
-
-        if (latitude != null && longitude != null) {
-            builder.queryParam("location", latitude + "," + longitude)
-                    .queryParam("radius", SEARCH_RADIUS_METERS);
-        }
-
-        logger.info("Accessing maps api with query {}", query);
-        return restTemplate.getForObject(toUri(builder), JsonNode.class);
-    }
-
     // RestTemplate treats a String URL as a template and encodes it again, and
     // UriComponentsBuilder.toUriString() already encodes once -- so any space
     // reached Google as literal "%20" (e.g. keyword "grocery store" matched
@@ -64,10 +47,9 @@ public class GooglePlacesClient {
     }
 
     /**
-     * Searches for places of a given category (Places "type") near a location. Unlike
-     * findPlaces (Text Search), this doesn't match free text against place names/types —
-     * it directly asks for places of that type, so it's used for category-based shop
-     * discovery rather than geocoding a known shop name.
+     * Searches for places of a given category (Places "type") near a location. It doesn't
+     * match free text against place names/types; it directly asks for places of that type,
+     * which is what category-based shop discovery needs.
      * <p>
      * Uses rankby=distance instead of a radius: Nearby Search defaults to ranking by
      * "prominence" (rating/popularity), which can rank a big-box store several km away above a

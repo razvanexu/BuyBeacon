@@ -12,10 +12,7 @@ This file covers frontend setup and structure only.
 
 Each shop from the backend carries a `source` (`google_places` or
 `openstreetmap`) and a `matchConfidence` (currently always `CATEGORY_MATCH`),
-parsed into `ShopLocation`. The map pin snippet shows the evidence level. The
-app still handles the older `retailer_catalog` / `RETAILER_CATALOG` values
-(catalog-confirmed wording in notifications), but the backend no longer sends
-them since the Carrefour scraper was removed. An
+parsed into `ShopLocation`. The map pin snippet shows the evidence level. An
 "© OpenStreetMap contributors" attribution appears on the map whenever an OSM
 shop is shown. Map markers are keyed by name + coordinates, so separate
 branches of the same chain each get their own pin.
