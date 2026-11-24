@@ -1,6 +1,8 @@
 package com.buybeacon.backend.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,17 +15,22 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class GooglePlacesClient {
     private static final Logger logger = LoggerFactory.getLogger(GooglePlacesClient.class);
 
     private static final String NEARBY_SEARCH_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
+    static final String REQUESTS_METRIC = "places.api.requests";
     private final RestTemplate restTemplate;
     private final String apiKey;
+    private final MeterRegistry meterRegistry;
 
     @Autowired
-    public GooglePlacesClient(RestTemplateBuilder restTemplateBuilder, @Value("${google.maps.api.key}") String apiKey) {
+    public GooglePlacesClient(RestTemplateBuilder restTemplateBuilder,
+                              @Value("${google.maps.api.key}") String apiKey,
+                              MeterRegistry meterRegistry) {
         // Without explicit timeouts, a single stalled Places API call can hang forever and,
         // combined with the bounded scrapingExecutor pool, starve every other concurrent
         // discovery call waiting for a free thread.
@@ -36,6 +43,23 @@ public class GooglePlacesClient {
                 .messageConverters(new MappingJackson2HttpMessageConverter())
                 .build();
         this.apiKey = apiKey;
+        this.meterRegistry = meterRegistry;
+    }
+
+    private JsonNode timedRequest(String query, URI uri) {
+        long start = System.nanoTime();
+        String outcome = "error";
+        try {
+            JsonNode response = restTemplate.getForObject(uri, JsonNode.class);
+            outcome = "success";
+            return response;
+        } finally {
+            Timer.builder(REQUESTS_METRIC)
+                    .tag("query", query)
+                    .tag("outcome", outcome)
+                    .register(meterRegistry)
+                    .record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+        }
     }
 
     // RestTemplate treats a String URL as a template and encodes it again, and
@@ -65,7 +89,7 @@ public class GooglePlacesClient {
                 .queryParam("key", this.apiKey);
 
         logger.info("Accessing maps nearby-search api with type {}", type);
-        return restTemplate.getForObject(toUri(builder), JsonNode.class);
+        return timedRequest("type", toUri(builder));
     }
 
     /**
@@ -88,6 +112,6 @@ public class GooglePlacesClient {
                 .queryParam("key", this.apiKey);
 
         logger.info("Accessing maps nearby-search api with keyword {}", keyword);
-        return restTemplate.getForObject(toUri(builder), JsonNode.class);
+        return timedRequest("keyword", toUri(builder));
     }
 }
