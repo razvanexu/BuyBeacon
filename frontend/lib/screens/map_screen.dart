@@ -5,6 +5,7 @@ import 'package:buy_beacon/models/shop_location.dart';
 import 'package:buy_beacon/orchestrators/shopping_orchestrator.dart';
 import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/services/location_service.dart';
+import 'package:buy_beacon/widgets/stop_app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -135,7 +136,10 @@ class _MapScreenState extends State<MapScreen> {
         // Show a loading indicator until we have the user's location.
         if (userLocation == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Nearest Shops')),
+            appBar: AppBar(
+              title: const Text('Nearest Shops'),
+              actions: const [StopAppButton()],
+            ),
             body: const Center(child: Text("Waiting for your location...")),
           );
         }
@@ -165,6 +169,7 @@ class _MapScreenState extends State<MapScreen> {
             return Scaffold(
               appBar: AppBar(
                 title: const Text('Nearest Shops'),
+                actions: const [StopAppButton()],
                 bottom: PreferredSize(
                   preferredSize: const Size.fromHeight(4.0),
                   child: isLoading

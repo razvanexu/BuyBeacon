@@ -115,6 +115,14 @@ class GeofenceService extends ChangeNotifier {
     DebugFileLogger().log('GeofenceService.initialize restored ${restored.length} inside entries');
   }
 
+  Future<void> stopMonitoring() async {
+    _locationService.removeListener(_checkProximity);
+    _lastPersistedAt = DateTime.now();
+    await _stateStore.save(Map.of(_lastInsideAt));
+    await _clearGeofences();
+    DebugFileLogger().log('GeofenceService.stopMonitoring geofences cleared');
+  }
+
   @override
   void dispose() {
     _locationService.removeListener(_checkProximity);

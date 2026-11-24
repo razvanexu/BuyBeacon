@@ -224,6 +224,50 @@ void main() {
       }); // End of fakeAsync
     });
   });
+
+  group('shutdown', () {
+    setUp(() {
+      when(mockGeofenceService.stopMonitoring()).thenAnswer((_) async {});
+      when(mockLocationService.stopTracking()).thenAnswer((_) async {});
+    });
+
+    test('stops geofence monitoring before location tracking', () async {
+      await orchestrator.shutdown();
+
+      verifyInOrder([
+        mockGeofenceService.stopMonitoring(),
+        mockLocationService.stopTracking(),
+      ]);
+    });
+
+    test('stops reacting to location and product changes', () async {
+      final listener =
+          verify(mockLocationService.addListener(captureAny)).captured.single
+              as void Function();
+
+      await orchestrator.shutdown();
+
+      verify(mockLocationService.removeListener(listener)).called(1);
+      expect(customMockProductProvider.onProductsChanged, isNull);
+    });
+
+    test('cancels a pending retry', () {
+      fakeAsync((async) {
+        customMockProductProvider.productsInternal = [Product(name: 'Milk')];
+        when(mockProductRepository.findShopsForProducts(any, latitude: anyNamed('latitude'), longitude: anyNamed('longitude')))
+            .thenThrow(Exception('offline'));
+        customMockProductProvider.triggerOnProductsChanged();
+        async.flushMicrotasks();
+        clearInteractions(mockProductRepository);
+
+        orchestrator.shutdown();
+        async.flushMicrotasks();
+        async.elapse(const Duration(hours: 2));
+
+        verifyNever(mockProductRepository.findShopsForProducts(any, latitude: anyNamed('latitude'), longitude: anyNamed('longitude')));
+      });
+    });
+  });
 }
 
 class CustomMockProductProvider extends Mock implements ProductProvider {

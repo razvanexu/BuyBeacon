@@ -127,6 +127,15 @@ class MockLocationService extends _i1.Mock implements _i5.LocationService {
           as _i3.Future<void>);
 
   @override
+  _i3.Future<void> stopTracking() =>
+      (super.noSuchMethod(
+            Invocation.method(#stopTracking, []),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
   _i3.Future<_i6.AppLocation?> getCurrentLocation() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentLocation, []),

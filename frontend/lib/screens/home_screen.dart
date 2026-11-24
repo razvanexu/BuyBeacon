@@ -7,6 +7,7 @@ import 'package:buy_beacon/orchestrators/shopping_state.dart';
 import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/screens/map_screen.dart';
 import 'package:buy_beacon/services/location_service.dart';
+import 'package:buy_beacon/widgets/stop_app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -125,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 );
               },
             ),
+            const StopAppButton(),
           ],
           //progress indicator
           bottom: PreferredSize(

@@ -161,6 +161,15 @@ class MockGeofenceService extends _i1.Mock implements _i7.GeofenceService {
           as _i3.Future<void>);
 
   @override
+  _i3.Future<void> stopMonitoring() =>
+      (super.noSuchMethod(
+            Invocation.method(#stopMonitoring, []),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
   void dispose() => super.noSuchMethod(
     Invocation.method(#dispose, []),
     returnValueForMissingStub: null,
@@ -239,6 +248,15 @@ class MockLocationService extends _i1.Mock implements _i10.LocationService {
   _i3.Future<void> refreshSettingsHealth() =>
       (super.noSuchMethod(
             Invocation.method(#refreshSettingsHealth, []),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> stopTracking() =>
+      (super.noSuchMethod(
+            Invocation.method(#stopTracking, []),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
