@@ -10,7 +10,8 @@
 
     <application
         android:name="${applicationName}"
-        android:label="buy_beacon"
+        android:icon="@mipmap/ic_launcher"
+        android:label="BuyBeacon"
         tools:replace="android:label">
         <activity
             android:name=".MainActivity"
