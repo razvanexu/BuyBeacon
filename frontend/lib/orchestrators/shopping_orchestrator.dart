@@ -217,6 +217,16 @@ class ShoppingOrchestrator {
     _controller.add(_state);
   }
 
+  Future<void> shutdown() async {
+    log('[ShoppingOrchestrator] Shutting down.', name: 'ShoppingOrchestrator');
+    DebugFileLogger().log('ShoppingOrchestrator.shutdown requested by the user');
+    _cancelRetryTimer();
+    _productProvider.onProductsChanged = null;
+    _locationService.removeListener(_onLocationChanged);
+    await _geofenceService.stopMonitoring();
+    await _locationService.stopTracking();
+  }
+
   void dispose() {
     _controller.close();
     _cancelRetryTimer();

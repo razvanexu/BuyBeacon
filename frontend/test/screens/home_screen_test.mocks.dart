@@ -188,6 +188,15 @@ class MockShoppingOrchestrator extends _i1.Mock
           as _i3.ShoppingState);
 
   @override
+  _i7.Future<void> shutdown() =>
+      (super.noSuchMethod(
+            Invocation.method(#shutdown, []),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   void dispose() => super.noSuchMethod(
     Invocation.method(#dispose, []),
     returnValueForMissingStub: null,
@@ -239,6 +248,15 @@ class MockLocationService extends _i1.Mock implements _i10.LocationService {
   _i7.Future<void> refreshSettingsHealth() =>
       (super.noSuchMethod(
             Invocation.method(#refreshSettingsHealth, []),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> stopTracking() =>
+      (super.noSuchMethod(
+            Invocation.method(#stopTracking, []),
             returnValue: _i7.Future<void>.value(),
             returnValueForMissingStub: _i7.Future<void>.value(),
           )

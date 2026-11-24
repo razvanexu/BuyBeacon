@@ -438,5 +438,29 @@ void main() {
       await settle();
       expect(stateStore.saved, isEmpty);
     });
+
+    test('stopMonitoring clears geofences, saves state and stops checking proximity', () async {
+      await geofenceService.initialize();
+      final listener =
+          verify(mockLocationService.addListener(captureAny)).captured.single
+              as void Function();
+
+      when(mockLocationService.userLocation).thenReturn(fixAt(1.0, 1));
+      await geofenceService.addGeofences([
+        ShopLocation(name: 'Shop 1', latitude: 1.0, longitude: 1.0, products: []),
+      ]);
+      when(mockLocationService.userLocation).thenReturn(fixAt(1.0, 2));
+      listener();
+      await settle();
+      clearInteractions(mockPlatform);
+      stateStore.saved = {};
+
+      await geofenceService.stopMonitoring();
+
+      verify(mockPlatform.removeGeofences()).called(1);
+      verify(mockLocationService.removeListener(listener)).called(1);
+      expect(geofenceService.geofenceData, isEmpty);
+      expect(stateStore.saved.keys, contains('shop_1.0_1.0'));
+    });
   });
 }

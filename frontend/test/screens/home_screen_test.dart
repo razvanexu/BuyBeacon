@@ -9,6 +9,7 @@ import 'package:buy_beacon/providers/product_provider.dart';
 import 'package:buy_beacon/screens/home_screen.dart';
 import 'package:buy_beacon/services/location_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -200,5 +201,61 @@ void main() {
 
     // ASSERT
     expect(find.byType(MaterialBanner), findsNothing);
+  });
+
+  group('stop button', () {
+    final List<MethodCall> platformCalls = [];
+
+    setUp(() {
+      platformCalls.clear();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        platformCalls.add(call);
+        return null;
+      });
+      when(mockShoppingOrchestrator.shutdown()).thenAnswer((_) async {});
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    bool closedApp() => platformCalls.any((call) => call.method == 'SystemNavigator.pop');
+
+    testWidgets('sits to the right of the map button', (WidgetTester tester) async {
+      await tester.pumpWidget(createHomeScreen());
+
+      final mapX = tester.getCenter(find.byIcon(Icons.map)).dx;
+      final stopX = tester.getCenter(find.byIcon(Icons.power_settings_new)).dx;
+      expect(stopX, greaterThan(mapX));
+    });
+
+    testWidgets('cancelling the dialog keeps the app running', (WidgetTester tester) async {
+      await tester.pumpWidget(createHomeScreen());
+
+      await tester.tap(find.byIcon(Icons.power_settings_new));
+      await tester.pumpAndSettle();
+      expect(find.text('Oprești BuyBeacon?'), findsOneWidget);
+
+      await tester.tap(find.text('Anulează'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Oprești BuyBeacon?'), findsNothing);
+      verifyNever(mockShoppingOrchestrator.shutdown());
+      expect(closedApp(), isFalse);
+    });
+
+    testWidgets('confirming shuts everything down, then closes the app', (WidgetTester tester) async {
+      await tester.pumpWidget(createHomeScreen());
+
+      await tester.tap(find.byIcon(Icons.power_settings_new));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Oprește'));
+      await tester.pumpAndSettle();
+
+      verify(mockShoppingOrchestrator.shutdown()).called(1);
+      expect(closedApp(), isTrue);
+    });
   });
 }

@@ -178,6 +178,22 @@ class LocationService extends ChangeNotifier {
   /// itself once they've whitelisted the app.
   Future<void> refreshSettingsHealth() => _checkSettingsHealth();
 
+  Future<void> stopTracking() async {
+    try {
+      await tl.Tracelet.setConfig(const tl.Config(app: tl.AppConfig(startOnBoot: false)));
+    } catch (e) {
+      log('[LocationService] Disabling startOnBoot failed: $e', name: 'LocationService', error: e);
+      DebugFileLogger().log('LocationService.stopTracking setConfig failed: $e');
+    }
+    try {
+      await tl.Tracelet.stop();
+      DebugFileLogger().log('LocationService.stopTracking tracking stopped');
+    } catch (e) {
+      log('[LocationService] Tracelet.stop() failed: $e', name: 'LocationService', error: e);
+      DebugFileLogger().log('LocationService.stopTracking stop failed: $e');
+    }
+  }
+
   void _onLocation(tl.Location location) {
     if (kDebugMode) {
       log(

@@ -47,4 +47,24 @@ void main() {
     expect(locationService.userLocation?.latitude, 50.0);
     expect(listenerCallCount, 1);
   });
+
+  test('stopTracking disables restart on boot before stopping tracking', () async {
+    when(mockPlatform.setConfig(any)).thenAnswer((_) async => {'enabled': true});
+    when(mockPlatform.stop()).thenAnswer((_) async => {'enabled': false});
+
+    await locationService.stopTracking();
+
+    final calls = verifyInOrder([mockPlatform.setConfig(captureAny), mockPlatform.stop()]);
+    final config = calls.first.captured.single as TlConfig;
+    expect(config.app.startOnBoot, isFalse);
+  });
+
+  test('stopTracking still stops tracking when the config update fails', () async {
+    when(mockPlatform.setConfig(any)).thenThrow(Exception('config failed'));
+    when(mockPlatform.stop()).thenAnswer((_) async => {'enabled': false});
+
+    await locationService.stopTracking();
+
+    verify(mockPlatform.stop()).called(1);
+  });
 }
